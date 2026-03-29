@@ -619,7 +619,7 @@ h1 span { color: var(--gold); }
   <div id="actions">
     <button id="draw-pile" onclick="drawCard()" aria-label="Draw a card from the deck">
       <div id="draw-pile-count">—</div>
-      <div>DRAW</div>
+      <div>DRAW &amp; SKIP</div>
     </button>
   </div>
 
@@ -871,13 +871,32 @@ function drawCard() {
     showFeedback("Your hand is full. Play a card first.", 'info');
     return;
   }
+
+  // Draw a card — cost is hand grows
   const drew = dealToPlayer();
-  if (drew) {
-    renderHand();
-    updateHUD();
-    setQuip(pick(BUREAUCRAT.quips));
-    showFeedback("Card drawn. Choose wisely.", 'info');
+  if (!drew) {
+    showFeedback("Deck is empty.", 'info');
+    return;
   }
+
+  // Violation rotates — send it to the back of the opponent's hand
+  const skipped = STATE.activeViolation;
+  STATE.oppHand.push(skipped); // goes back in — deferred not defeated
+  STATE.activeViolation = null;
+
+  renderHand();
+  updateHUD();
+  setQuip(pick([
+    "We'll circle back to that one.",
+    "Noted. Moving on.",
+    "That issue isn't going away.",
+    "Fine. But I have more where that came from.",
+    "Postponed, not resolved.",
+  ]));
+  showFeedback("Card drawn — violation deferred. The Bureaucrat will return to it.", 'info');
+
+  // Brief pause then next violation
+  setTimeout(() => oppPlayViolation(), 1000);
 }
 
 // ── Opponent plays ────────────────────────────────────────────────────────────
