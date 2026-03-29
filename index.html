@@ -260,16 +260,30 @@ body {
 .choice.wrong { background: rgba(180,60,60,0.1); border-color: #b43c3c; color: #7a1a1a; }
 .choice.close { background: rgba(212,168,83,0.15); border-color: var(--gold); }
 
-/* Continue indicator */
+/* Continue button — big, obvious, tappable */
 #vn-continue {
-  position: absolute;
-  bottom: 24px;
-  right: 28px;
-  color: var(--gold);
-  font-size: 1.2rem;
-  animation: pulse 1.2s infinite;
-  cursor: pointer;
   display: none;
+  margin-top: 16px;
+  width: 100%;
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  border-radius: 2px;
+  padding: 13px 20px;
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, transform 0.1s;
+  animation: pulse-btn 2s infinite;
+}
+#vn-continue:hover { background: var(--warm); transform: translateY(-1px); }
+#vn-continue:active { transform: translateY(0); }
+@keyframes pulse-btn {
+  0%,100% { box-shadow: 0 0 0 0 rgba(212,168,83,0.4); }
+  50%      { box-shadow: 0 0 0 6px rgba(212,168,83,0); }
 }
 
 /* ══════════════════════════════════════════
@@ -316,80 +330,98 @@ body {
 /* ══════════════════════════════════════════
    COMMUNITY MAP SCREEN
 ══════════════════════════════════════════ */
+/* ── Map screen ── */
 #map-screen {
-  background: var(--paper);
-  padding: 32px;
-  overflow-y: auto;
+  background: #2a2018;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+#map-header {
+  padding: 14px 20px 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid rgba(212,168,83,0.2);
+  flex-shrink: 0;
+  z-index: 2;
 }
 
 .map-title {
   font-family: 'Playfair Display', serif;
-  font-size: 1.4rem;
-  color: var(--ink);
-  margin-bottom: 6px;
+  font-size: 1.1rem;
+  color: var(--gold);
+  letter-spacing: 0.08em;
 }
 .map-sub {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--muted);
-  margin-bottom: 24px;
   font-style: italic;
 }
 
-#resident-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.resident-card {
-  background: white;
-  border: 1px solid rgba(26,18,8,0.1);
-  border-radius: 4px;
-  padding: 12px 8px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
+#town-canvas-wrap {
+  flex: 1;
+  overflow: hidden;
   position: relative;
 }
-.resident-card:hover { box-shadow: 0 4px 16px var(--shadow); transform: translateY(-2px); }
-.resident-card.locked { opacity: 0.35; filter: grayscale(1); cursor: default; }
-.resident-card.locked:hover { transform: none; box-shadow: none; }
-.resident-card.displaced { border-color: #b43c3c; background: #fff5f5; }
 
-.rc-emoji { font-size: 2rem; margin-bottom: 6px; }
-.rc-name { font-family: 'Playfair Display', serif; font-size: 0.8rem; color: var(--ink); margin-bottom: 2px; }
-.rc-article { font-size: 0.65rem; color: var(--muted); }
-.rc-trust { display: flex; justify-content: center; gap: 3px; margin-top: 6px; }
-.rc-trust-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--trust-0); }
-.rc-trust-dot.t1 { background: var(--trust-1); }
-.rc-trust-dot.t2 { background: var(--trust-2); }
-.rc-trust-dot.t3 { background: var(--trust-3); }
-
-.displaced-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #b43c3c;
-  color: white;
-  font-size: 0.55rem;
-  padding: 2px 5px;
-  border-radius: 10px;
-  font-family: 'Source Serif 4', serif;
+#town-svg {
+  width: 100%;
+  height: 100%;
 }
+
+/* Resident tooltip */
+#map-tooltip {
+  position: absolute;
+  background: rgba(26,18,8,0.92);
+  color: var(--paper);
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.75rem;
+  padding: 7px 12px;
+  border-radius: 3px;
+  border: 1px solid var(--gold);
+  pointer-events: none;
+  display: none;
+  z-index: 20;
+  max-width: 180px;
+  line-height: 1.5;
+}
+
+#map-footer {
+  padding: 10px 20px;
+  background: rgba(0,0,0,0.3);
+  border-top: 1px solid rgba(212,168,83,0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+#map-legend {
+  display: flex;
+  gap: 14px;
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
 
 .btn-secondary {
   font-family: 'Playfair Display', serif;
-  font-size: 0.9rem;
-  color: var(--ink);
+  font-size: 0.85rem;
+  color: var(--paper);
   background: transparent;
-  border: 1px solid rgba(26,18,8,0.3);
-  padding: 10px 24px;
+  border: 1px solid rgba(212,168,83,0.4);
+  padding: 8px 20px;
   border-radius: 2px;
   cursor: pointer;
   transition: all 0.2s;
 }
-.btn-secondary:hover { background: rgba(26,18,8,0.05); border-color: var(--ink); }
+.btn-secondary:hover { background: rgba(212,168,83,0.1); border-color: var(--gold); }
 
 /* ══════════════════════════════════════════
    ANIMATIONS
@@ -483,16 +515,29 @@ body {
       <div id="dialogue-speaker"></div>
       <div id="dialogue-text"></div>
       <div id="vn-choices"></div>
-      <div id="vn-continue" onclick="advanceScene()">▼</div>
+      <button id="vn-continue" onclick="advanceScene()">Continue ▼</button>
     </div>
   </div>
 
   <!-- COMMUNITY MAP SCREEN -->
   <div id="map-screen" class="screen">
-    <div class="map-title">Rightsborough</div>
-    <div class="map-sub">Your community — <span id="map-unlocked">1</span> of 30 residents known</div>
-    <div id="resident-grid"></div>
-    <button class="btn-secondary" onclick="showVN()">← Back to Rita's story</button>
+    <div id="map-header">
+      <span class="map-title">Rightsborough</span>
+      <span class="map-sub"><span id="map-unlocked">1</span> of 30 residents known</span>
+    </div>
+    <div id="town-canvas-wrap">
+      <svg id="town-svg" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="map-tooltip"></div>
+    </div>
+    <div id="map-footer">
+      <div id="map-legend">
+        <span><span class="legend-dot" style="background:#6a9e6f"></span>Trusted</span>
+        <span><span class="legend-dot" style="background:#c8956c"></span>Acquainted</span>
+        <span><span class="legend-dot" style="background:#555"></span>Stranger</span>
+        <span><span class="legend-dot" style="background:#b43c3c"></span>Withdrawn</span>
+      </div>
+      <button class="btn-secondary" onclick="showVN()">← Back to Rita</button>
+    </div>
   </div>
 
 </div>
@@ -979,36 +1024,313 @@ function updateHUD() {
 // ── Map ───────────────────────────────────────────────────────────────────────
 function renderMap() {
   document.getElementById('map-unlocked').textContent = STATE.unlockedCount;
-  const grid = document.getElementById('resident-grid');
-  grid.innerHTML = '';
-  RESIDENTS.forEach((res, i) => {
-    const locked    = i >= STATE.unlockedCount;
-    const displaced = STATE.displaced.includes(res.id);
-    const trust     = STATE.trust[res.id] || 0;
+  const svg = document.getElementById('town-svg');
 
-    const card = document.createElement('div');
-    card.className = 'resident-card' + (locked ? ' locked' : '') + (displaced ? ' displaced' : '');
+  // Town health score 0-100 based on trust + unlocked
+  const totalTrust = Object.values(STATE.trust).reduce((a,b) => a+b, 0);
+  const maxTrust   = STATE.unlockedCount * 3;
+  const health     = maxTrust > 0 ? Math.round((totalTrust / maxTrust) * 100) : 0;
+  const displaced  = STATE.displaced.length;
 
-    if (displaced) {
-      const badge = document.createElement('div');
-      badge.className = 'displaced-badge';
-      badge.textContent = 'withdrawn';
-      card.appendChild(badge);
+  // Sky color — dingy grey → warm dusk → clear blue as health improves
+  const skyStart = health < 30 ? '#3a3530' : health < 60 ? '#4a4035' : '#5a6e8a';
+  const skyEnd   = health < 30 ? '#1a1510' : health < 60 ? '#2a2018' : '#2a3a52';
+
+  // Ground / street color
+  const groundCol = health < 30 ? '#2a2418' : health < 60 ? '#2e2a1e' : '#333024';
+  const grassCol  = health < 30 ? '#2a3020' : health < 60 ? '#384030' : '#445a38';
+
+  // Building palette — brighter with health
+  const bldPal = health < 30
+    ? ['#3a3028','#352c24','#2e2820','#3a2e28']
+    : health < 60
+    ? ['#4a3e30','#453828','#3e3428','#4a3e34']
+    : ['#5a4e3c','#554838','#4e4438','#5a4e44'];
+
+  // Resident positions — fixed layout around a central park
+  // 30 positions arranged in rings around center (400,240)
+  const positions = buildPositions();
+
+  svg.innerHTML = `
+    <defs>
+      <radialGradient id="skyGrad" cx="50%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="${skyStart}"/>
+        <stop offset="100%" stop-color="${skyEnd}"/>
+      </radialGradient>
+      <radialGradient id="lampGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${health > 40 ? 'rgba(212,168,83,0.35)' : 'rgba(212,168,83,0.08)'}"/>
+        <stop offset="100%" stop-color="rgba(212,168,83,0)"/>
+      </radialGradient>
+      <filter id="blur2"><feGaussianBlur stdDeviation="2"/></filter>
+      <filter id="blur4"><feGaussianBlur stdDeviation="4"/></filter>
+    </defs>
+
+    <!-- Sky -->
+    <rect width="800" height="480" fill="url(#skyGrad)"/>
+
+    <!-- Distant haze / smog — clears with health -->
+    ${health < 50 ? `<rect width="800" height="200" y="140" fill="rgba(40,30,20,${0.3 - health*0.004})" filter="url(#blur4)"/>` : ''}
+
+    <!-- Stars — appear when health > 60 -->
+    ${health > 60 ? renderStars() : ''}
+
+    <!-- Ground -->
+    <rect x="0" y="320" width="800" height="160" fill="${groundCol}"/>
+
+    <!-- Streets — cross pattern -->
+    <rect x="340" y="200" width="120" height="280" fill="${health < 30 ? '#1a1810' : '#22201a'}"/>
+    <rect x="0" y="300" width="800" height="60" fill="${health < 30 ? '#1a1810' : '#22201a'}"/>
+
+    <!-- Street cracks (dingy) -->
+    ${health < 40 ? renderCracks() : ''}
+
+    <!-- Central park -->
+    ${renderPark(400, 300, health, grassCol)}
+
+    <!-- Buildings ring -->
+    ${renderBuildings(positions, bldPal, health)}
+
+    <!-- Resident homes / figures -->
+    ${renderResidents(positions, health)}
+
+    <!-- Lamp posts -->
+    ${renderLamps(health)}
+
+    <!-- Health overlay label -->
+    <text x="12" y="470" font-family="Georgia,serif" font-size="9" fill="rgba(212,168,83,0.5)" font-style="italic">
+      Rightsborough — ${health < 30 ? 'struggling' : health < 60 ? 'recovering' : 'thriving'}
+    </text>
+  `;
+
+  // Attach tooltip events
+  svg.querySelectorAll('[data-res]').forEach(el => {
+    el.addEventListener('mouseenter', e => showMapTooltip(e, el.dataset.res));
+    el.addEventListener('mouseleave', hideMapTooltip);
+    el.addEventListener('click', () => {
+      const id = parseInt(el.dataset.res);
+      const res = RESIDENTS.find(r => r.id === id);
+      if (res && !STATE.displaced.includes(id) && id <= STATE.unlockedCount) {
+        hideMapTooltip();
+        showVN();
+        setTimeout(() => showRevisit(res, STATE.trust[id] || 0), 300);
+      }
+    });
+  });
+}
+
+function buildPositions() {
+  // Ring 1: 8 positions close to park
+  // Ring 2: 12 positions mid distance
+  // Ring 3: 10 positions outer
+  const cx = 400, cy = 280;
+  const pos = [];
+  const rings = [
+    { count: 8,  r: 110 },
+    { count: 12, r: 175 },
+    { count: 10, r: 235 },
+  ];
+  let id = 1;
+  rings.forEach(({ count, r }) => {
+    for (let i = 0; i < count && id <= 30; i++, id++) {
+      const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
+      pos.push({ id, x: Math.round(cx + Math.cos(angle) * r), y: Math.round(cy + Math.sin(angle) * r) });
+    }
+  });
+  return pos;
+}
+
+function renderPark(cx, cy, health, grassCol) {
+  const pw = 90, ph = 60;
+  const fountainActive = health > 25;
+  const treesGreen     = health > 40;
+  const benchOk        = health > 20;
+
+  return `
+    <!-- Park ground -->
+    <ellipse cx="${cx}" cy="${cy}" rx="${pw}" ry="${ph}" fill="${grassCol}"/>
+    ${health < 30 ? `<ellipse cx="${cx}" cy="${cy}" rx="${pw}" ry="${ph}" fill="rgba(0,0,0,0.3)"/>` : ''}
+
+    <!-- Park path -->
+    <ellipse cx="${cx}" cy="${cy}" rx="${pw*0.55}" ry="${ph*0.55}" fill="none" stroke="${health < 30 ? '#2a2418' : '#3a3428'}" stroke-width="6"/>
+
+    <!-- Trees -->
+    ${[-55,-30,30,55].map((dx,i) => {
+      const ty = cy + (i%2===0 ? -ph*0.6 : ph*0.6);
+      const tx = cx + dx;
+      const col = treesGreen ? (health > 60 ? '#4a7a3a' : '#3a5a2a') : '#2a3020';
+      return `<ellipse cx="${tx}" cy="${ty}" rx="14" ry="16" fill="${col}"/>
+              <rect x="${tx-2}" y="${ty+8}" width="4" height="10" fill="#2a1a10"/>`;
+    }).join('')}
+
+    <!-- Fountain -->
+    <ellipse cx="${cx}" cy="${cy}" rx="18" ry="11" fill="${fountainActive ? '#2a4a5c' : '#1a2a30'}"/>
+    <circle cx="${cx}" cy="${cy-4}" r="6" fill="${fountainActive ? '#3a6a7c' : '#1a2a30'}"/>
+    ${fountainActive ? `
+      <ellipse cx="${cx}" cy="${cy-10}" rx="8" ry="3" fill="rgba(100,180,220,0.5)" filter="url(#blur2)"/>
+      <line x1="${cx}" y1="${cy-4}" x2="${cx-5}" y2="${cy-14}" stroke="rgba(150,210,240,0.7)" stroke-width="1.5"/>
+      <line x1="${cx}" y1="${cy-4}" x2="${cx+5}" y2="${cy-14}" stroke="rgba(150,210,240,0.7)" stroke-width="1.5"/>
+      <line x1="${cx}" y1="${cy-4}" x2="${cx}" y2="${cy-16}" stroke="rgba(150,210,240,0.8)" stroke-width="1.5"/>
+    ` : ''}
+
+    <!-- Benches -->
+    ${benchOk ? `
+      <rect x="${cx-26}" y="${cy+20}" width="16" height="5" rx="2" fill="#3a2a18"/>
+      <rect x="${cx+10}" y="${cy+20}" width="16" height="5" rx="2" fill="#3a2a18"/>
+    ` : ''}
+
+    <!-- Park label -->
+    <text x="${cx}" y="${cy+ph+14}" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="rgba(212,168,83,0.6)" font-style="italic">Rightsborough Park</text>
+  `;
+}
+
+function renderBuildings(positions, palette, health) {
+  // Buildings fill background — not tied to specific residents
+  const buildings = [
+    {x:80,  y:220, w:70, h:80,  floors:3},
+    {x:180, y:230, w:55, h:70,  floors:2},
+    {x:560, y:220, w:65, h:85,  floors:3},
+    {x:650, y:235, w:55, h:65,  floors:2},
+    {x:80,  y:370, w:80, h:60,  floors:2},
+    {x:640, y:370, w:80, h:60,  floors:2},
+    {x:330, y:150, w:50, h:60,  floors:2},
+    {x:420, y:148, w:55, h:62,  floors:2},
+  ];
+
+  return buildings.map((b, i) => {
+    const col = palette[i % palette.length];
+    const windows = [];
+    for (let r = 0; r < b.floors; r++) {
+      for (let c = 0; c < 3; c++) {
+        const wx = b.x + 8 + c * 18;
+        const wy = b.y + 10 + r * 22;
+        const lit = health > 20 && Math.random() > 0.4;
+        windows.push(`<rect x="${wx}" y="${wy}" width="10" height="12" rx="1" fill="${lit ? 'rgba(212,168,83,0.6)' : 'rgba(0,0,0,0.5)'}"/>`);
+      }
+    }
+    return `
+      <rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="${col}" rx="2"/>
+      <rect x="${b.x}" y="${b.y}" width="${b.w}" height="8" fill="rgba(0,0,0,0.2)" rx="2"/>
+      ${windows.join('')}
+    `;
+  }).join('');
+}
+
+function renderResidents(positions, health) {
+  return positions.map(p => {
+    const res      = RESIDENTS.find(r => r.id === p.id);
+    const locked   = p.id > STATE.unlockedCount;
+    const trust    = STATE.trust[p.id] || 0;
+    const displaced = STATE.displaced.includes(p.id);
+
+    if (locked) {
+      // Locked — show dark house silhouette
+      return `
+        <g opacity="0.25">
+          <rect x="${p.x-10}" y="${p.y-16}" width="20" height="18" rx="2" fill="#2a2018"/>
+          <polygon points="${p.x-12},${p.y-16} ${p.x},${p.y-26} ${p.x+12},${p.y-16}" fill="#1a1410"/>
+        </g>`;
     }
 
-    const dots = [1,2,3].map(i =>
-      `<div class="rc-trust-dot ${!locked && trust >= i ? 't'+i : ''}"></div>`
-    ).join('');
+    // House color based on trust
+    const houseCol = displaced ? '#3a1818'
+      : trust >= 3 ? '#4a6a3a'
+      : trust >= 2 ? '#4a4a2a'
+      : trust >= 1 ? '#3a3828'
+      : '#2e2c24';
 
-    card.innerHTML += `
-      <div class="rc-emoji">${res.emoji}</div>
-      <div class="rc-name">${res.name}</div>
-      <div class="rc-article">${res.article}</div>
-      <div class="rc-trust">${dots}</div>
-    `;
-    if (!locked) card.title = res.right;
-    grid.appendChild(card);
-  });
+    const roofCol = displaced ? '#2a1010'
+      : trust >= 3 ? '#3a5a2a'
+      : trust >= 2 ? '#3a3a1a'
+      : '#2a2820';
+
+    const lightCol = displaced ? 'none'
+      : trust >= 2 ? 'rgba(212,168,83,0.7)'
+      : trust >= 1 ? 'rgba(212,168,83,0.3)'
+      : 'rgba(0,0,0,0.5)';
+
+    // Glow under trusted homes
+    const glow = trust >= 2 && !displaced
+      ? `<ellipse cx="${p.x}" cy="${p.y+4}" rx="18" ry="8" fill="rgba(212,168,83,0.12)" filter="url(#blur2)"/>`
+      : '';
+
+    // Displaced — dark with crack
+    const dispMark = displaced
+      ? `<text x="${p.x}" y="${p.y-28}" text-anchor="middle" font-size="10">🚪</text>`
+      : '';
+
+    return `
+      <g data-res="${p.id}" style="cursor:${p.id <= STATE.unlockedCount && !displaced ? 'pointer' : 'default'}">
+        ${glow}
+        <!-- House -->
+        <rect x="${p.x-11}" y="${p.y-15}" width="22" height="19" rx="2" fill="${houseCol}"/>
+        <polygon points="${p.x-13},${p.y-15} ${p.x},${p.y-27} ${p.x+13},${p.y-15}" fill="${roofCol}"/>
+        <!-- Door -->
+        <rect x="${p.x-3}" y="${p.y-6}" width="6" height="8" rx="1" fill="rgba(0,0,0,0.5)"/>
+        <!-- Window light -->
+        <rect x="${p.x+2}" y="${p.y-12}" width="6" height="5" rx="1" fill="${lightCol}"/>
+        <!-- Name tag -->
+        <text x="${p.x}" y="${p.y+10}" text-anchor="middle" font-family="Georgia,serif" font-size="7.5"
+          fill="${displaced ? '#b43c3c' : trust >= 2 ? '#d4a853' : 'rgba(245,240,232,0.6)'}">
+          ${res.name}
+        </text>
+        <!-- Emoji badge -->
+        <text x="${p.x+10}" y="${p.y-22}" font-size="9">${res.emoji}</text>
+        ${dispMark}
+      </g>`;
+  }).join('');
+}
+
+function renderLamps(health) {
+  const lampsOn = health > 15;
+  const lampCols = [[160,310],[400,200],[640,310],[240,390],[560,390]];
+  return lampCols.map(([x,y]) => `
+    <line x1="${x}" y1="${y}" x2="${x}" y2="${y+40}" stroke="#3a3020" stroke-width="2"/>
+    <circle cx="${x}" cy="${y}" r="5" fill="${lampsOn ? '#d4a853' : '#2a2018'}"/>
+    ${lampsOn ? `<ellipse cx="${x}" cy="${y}" rx="20" ry="20" fill="url(#lampGlow)" filter="url(#blur4)"/>` : ''}
+  `).join('');
+}
+
+function renderStars() {
+  const stars = [];
+  for (let i = 0; i < 40; i++) {
+    const x = Math.random() * 800;
+    const y = Math.random() * 180;
+    const r = Math.random() * 1.2 + 0.3;
+    stars.push(`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(1)}" fill="rgba(245,240,232,${(Math.random()*0.5+0.3).toFixed(2)})"/>`);
+  }
+  return stars.join('');
+}
+
+function renderCracks() {
+  return `
+    <line x1="200" y1="330" x2="220" y2="345" stroke="rgba(0,0,0,0.4)" stroke-width="1.5"/>
+    <line x1="500" y1="340" x2="530" y2="350" stroke="rgba(0,0,0,0.4)" stroke-width="1.5"/>
+    <line x1="350" y1="360" x2="360" y2="375" stroke="rgba(0,0,0,0.4)" stroke-width="1.5"/>
+  `;
+}
+
+function showMapTooltip(e, resId) {
+  const res  = RESIDENTS.find(r => r.id === parseInt(resId));
+  if (!res) return;
+  const trust     = STATE.trust[res.id] || 0;
+  const displaced = STATE.displaced.includes(res.id);
+  const locked    = res.id > STATE.unlockedCount;
+  if (locked) return;
+
+  const tip = document.getElementById('map-tooltip');
+  const trustLabel = displaced ? 'Withdrawn' : ['Stranger','Acquaintance','Neighbor','Ally'][trust];
+  tip.innerHTML = `<strong>${res.emoji} ${res.name}</strong><br>${res.right}<br><em style="color:var(--muted)">${res.article} · ${trustLabel}</em>${!displaced ? '<br><span style="color:var(--gold);font-size:0.65rem">Click to visit</span>' : ''}`;
+
+  const wrap = document.getElementById('town-canvas-wrap');
+  const rect = wrap.getBoundingClientRect();
+  const svgRect = document.getElementById('town-svg').getBoundingClientRect();
+  tip.style.display = 'block';
+  tip.style.left = Math.min(e.clientX - rect.left + 12, rect.width - 200) + 'px';
+  tip.style.top  = Math.max(e.clientY - rect.top - 60, 4) + 'px';
+}
+
+function hideMapTooltip() {
+  document.getElementById('map-tooltip').style.display = 'none';
 }
 
 // ── Between scenes — breaks linearity, gives player agency ──────────────────
