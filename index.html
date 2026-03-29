@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UPHOLD</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d0d0f;
+  --surface:  #16161a;
+  --border:   #2a2a35;
+  --gold:     #e8b84b;
+  --gold-dim: #7a5c1a;
+  --red:      #c94040;
+  --green:    #4a9e6a;
+  --blue:     #4a7ac9;
+  --purple:   #8a4ac9;
+  --text:     #e8e4d8;
+  --muted:    #6a6458;
+  --card-w:   130px;
+  --card-h:   186px;
+}
+
+body {
+  font-family: 'Crimson Pro', Georgia, serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+/* Grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.6;
+}
+
+/* ══════════════════════
+   TITLE SCREEN
+══════════════════════ */
+#title-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  max-width: 560px;
+}
+
+.title-badge {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--gold);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: rise 0.7s 0.2s forwards;
+}
+
+h1 {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(5rem, 20vw, 9rem);
+  letter-spacing: 0.08em;
+  line-height: 0.85;
+  color: var(--text);
+  margin-bottom: 4px;
+  opacity: 0;
+  animation: rise 0.7s 0.4s forwards;
+}
+
+h1 span { color: var(--gold); }
+
+.title-tagline {
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--muted);
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: rise 0.7s 0.6s forwards;
+}
+
+.title-desc {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #8a8478;
+  max-width: 400px;
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: rise 0.7s 0.8s forwards;
+}
+
+.btn {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  padding: 14px 48px;
+  border: 2px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0;
+  animation: rise 0.7s 1s forwards;
+}
+.btn:hover { background: var(--gold); color: var(--bg); }
+.btn-sm {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  padding: 8px 24px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-sm:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ══════════════════════
+   GAME SCREEN
+══════════════════════ */
+#game-screen {
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  max-width: 900px;
+  min-height: 100vh;
+  padding: 16px;
+  gap: 12px;
+}
+
+/* ── HUD bar ── */
+#hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+.hud-item { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.hud-item strong { color: var(--text); font-size: 0.95rem; }
+#hud-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.15em; color: var(--gold); }
+
+/* ── Opponent area ── */
+#opponent-area {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 90px;
+}
+
+#opponent-avatar {
+  font-size: 2.8rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(232,184,75,0.2));
+}
+
+#opponent-info { flex: 1; }
+#opponent-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+  color: var(--red);
+  margin-bottom: 2px;
+}
+#opponent-quip {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.4;
+  min-height: 20px;
+  transition: opacity 0.3s;
+}
+
+#opponent-hand-count {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* Opponent hand display - face down cards */
+#opponent-hand {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.opp-card-back {
+  width: 28px;
+  height: 40px;
+  background: linear-gradient(135deg, #1e1e28 0%, #2a2a38 100%);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  transition: all 0.3s;
+}
+
+/* ── Violation zone ── */
+#violation-zone {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+#violation-card {
+  width: 100%;
+  background: linear-gradient(135deg, #1e0f0f 0%, #2a1515 100%);
+  border: 2px solid var(--red);
+  border-radius: 4px;
+  padding: 20px 24px;
+  position: relative;
+  animation: cardSlide 0.4s ease;
+}
+
+#violation-card::before {
+  content: 'VIOLATION';
+  position: absolute;
+  top: -1px;
+  left: 16px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--red);
+  background: #1e0f0f;
+  padding: 0 6px;
+  transform: translateY(-50%);
+}
+
+#violation-article {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+
+#violation-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+#violation-hint {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--muted);
+  margin-top: 8px;
+  min-height: 18px;
+}
+
+#empty-violation {
+  font-style: italic;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ── Feedback banner ── */
+#feedback {
+  padding: 10px 16px;
+  border-radius: 2px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  display: none;
+  animation: rise 0.3s forwards;
+}
+#feedback.correct { background: rgba(74,158,106,0.15); border: 1px solid var(--green); color: #81c99a; }
+#feedback.wrong   { background: rgba(201,64,64,0.12); border: 1px solid var(--red); color: #e08080; }
+#feedback.special { background: rgba(138,74,201,0.12); border: 1px solid var(--purple); color: #b894e0; }
+#feedback.info    { background: rgba(74,122,201,0.12); border: 1px solid var(--blue); color: #80a8e0; }
+
+/* ── Player hand ── */
+#hand-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#hand-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+}
+
+#hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+/* ── Cards ── */
+.card {
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px 8px;
+  user-select: none;
+}
+
+.card:hover {
+  transform: translateY(-10px) scale(1.03);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  z-index: 10;
+}
+
+.card:active { transform: translateY(-6px) scale(1.01); }
+
+/* Rights card */
+.card.right-card {
+  background: linear-gradient(155deg, #131820 0%, #0e1520 100%);
+  border-color: var(--blue);
+}
+.card.right-card:hover { border-color: var(--gold); box-shadow: 0 20px 40px rgba(74,122,201,0.3); }
+
+/* Special cards */
+.card.shield-card  { background: linear-gradient(155deg, #141820 0%, #0e1420 100%); border-color: var(--green); }
+.card.shield-card:hover  { box-shadow: 0 20px 40px rgba(74,158,106,0.3); }
+.card.escalate-card { background: linear-gradient(155deg, #180f14 0%, #140a10 100%); border-color: var(--red); }
+.card.escalate-card:hover { box-shadow: 0 20px 40px rgba(201,64,64,0.3); }
+.card.solidarity-card { background: linear-gradient(155deg, #130f1a 0%, #0e0b16 100%); border-color: var(--purple); }
+.card.solidarity-card:hover { box-shadow: 0 20px 40px rgba(138,74,201,0.3); }
+.card.nope-card { background: linear-gradient(155deg, #181410 0%, #14100c 100%); border-color: var(--gold); }
+.card.nope-card:hover { box-shadow: 0 20px 40px rgba(232,184,75,0.3); }
+
+.card-corner {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.card-emoji {
+  font-size: 2rem;
+  text-align: center;
+  margin: 6px 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+.card-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.card-right {
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.card-article {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: var(--gold-dim);
+  text-align: center;
+  margin-top: auto;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Special card styles */
+.card-special-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin: 8px 0 4px;
+}
+.shield-card  .card-special-name { color: var(--green); }
+.escalate-card .card-special-name { color: var(--red); }
+.solidarity-card .card-special-name { color: var(--purple); }
+.nope-card    .card-special-name { color: var(--gold); }
+
+.card-special-desc {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.4;
+  padding: 0 4px;
+}
+
+/* Disabled state */
+.card.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+/* ── Draw pile & actions ── */
+#actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 4px 0 8px;
+}
+
+#draw-pile {
+  width: 80px;
+  height: 112px;
+  background: linear-gradient(135deg, #1a1a24 0%, #141420 100%);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  gap: 4px;
+}
+#draw-pile:hover { border-color: var(--gold); color: var(--gold); }
+#draw-pile-count { font-size: 1.4rem; color: var(--text); }
+
+/* ── End screen ── */
+#end-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  gap: 16px;
+}
+#end-result {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 12vw, 6rem);
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+#end-result.win  { color: var(--green); }
+#end-result.lose { color: var(--red); }
+#end-message { font-style: italic; color: var(--muted); font-size: 1rem; max-width: 400px; line-height: 1.7; }
+#end-opponent { font-size: 2rem; }
+
+/* ── Animations ── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes cardSlide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-6px); }
+  40%     { transform: translateX(6px); }
+  60%     { transform: translateX(-4px); }
+  80%     { transform: translateX(4px); }
+}
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.shake { animation: shake 0.4s ease; }
+.pop   { animation: pop   0.3s ease; }
+
+/* Mobile */
+@media (max-width: 600px) {
+  :root { --card-w: 100px; --card-h: 148px; }
+  .card-emoji { font-size: 1.6rem; }
+  .card-name  { font-size: 0.85rem; }
+  #opponent-avatar { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div id="title-screen">
+  <div class="title-badge">A card game about human rights</div>
+  <h1>UP<span>HOLD</span></h1>
+  <div class="title-tagline">The rights of the people vs. the machinery of indifference</div>
+  <p class="title-desc">
+    You hold the 30 universal human rights in your hand.
+    The Bureaucrat is playing violations.<br>
+    Counter each one. Defend what belongs to everyone.<br>
+    Empty your hand first. Uphold the 30.
+  </p>
+  <button class="btn" onclick="startGame()">DEAL THE CARDS</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen">
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-item">Hand: <strong id="hud-hand">5</strong></div>
+    <div id="hud-title">UPHOLD</div>
+    <div class="hud-item">Deck: <strong id="hud-deck">—</strong></div>
+  </div>
+
+  <!-- Opponent -->
+  <div id="opponent-area">
+    <div id="opponent-avatar">📋</div>
+    <div id="opponent-info">
+      <div id="opponent-name">THE BUREAUCRAT</div>
+      <div id="opponent-quip">Shuffling papers...</div>
+      <div id="opponent-hand">
+        <!-- face-down cards rendered by JS -->
+      </div>
+    </div>
+    <div id="opponent-hand-count"></div>
+  </div>
+
+  <!-- Active Violation -->
+  <div id="violation-zone">
+    <div id="violation-card" style="display:none">
+      <div id="violation-article"></div>
+      <div id="violation-text"></div>
+      <div id="violation-hint"></div>
+    </div>
+    <div id="empty-violation">Waiting for the Bureaucrat's next move...</div>
+  </div>
+
+  <!-- Feedback -->
+  <div id="feedback"></div>
+
+  <!-- Player hand -->
+  <div id="hand-area">
+    <div id="hand-label">Your Hand — play a card to counter the violation</div>
+    <div id="hand"></div>
+  </div>
+
+  <!-- Draw pile -->
+  <div id="actions">
+    <div id="draw-pile" onclick="drawCard()">
+      <div id="draw-pile-count">—</div>
+      <div>DRAW</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- END SCREEN -->
+<div id="end-screen">
+  <div id="end-opponent"></div>
+  <div id="end-result"></div>
+  <div id="end-message"></div>
+  <button class="btn" onclick="startGame()" style="margin-top:16px">PLAY AGAIN</button>
+  <button class="btn-sm" onclick="showTitle()" style="margin-top:8px">BACK TO START</button>
+</div>
+
+<script>
+// ── Residents / Rights ────────────────────────────────────────────────────────
+const RIGHTS = [
+  { id:1,  name:'Eden',    emoji:'🌱', right:'Equal dignity & freedom',            article:'Article 1'  },
+  { id:2,  name:'Amara',   emoji:'🤝', right:'No discrimination',                  article:'Article 2'  },
+  { id:3,  name:'Vida',    emoji:'💛', right:'Life, liberty & security',            article:'Article 3'  },
+  { id:4,  name:'Solomon', emoji:'⛓️', right:'Freedom from slavery',               article:'Article 4'  },
+  { id:5,  name:'River',   emoji:'🌊', right:'Freedom from torture',               article:'Article 5'  },
+  { id:6,  name:'Justice', emoji:'⚖️', right:'Recognition before the law',         article:'Article 6'  },
+  { id:7,  name:'Equan',   emoji:'🛡️', right:'Equal protection under law',         article:'Article 7'  },
+  { id:8,  name:'Remy',    emoji:'🔑', right:'Right to remedy',                    article:'Article 8'  },
+  { id:9,  name:'Freeman', emoji:'🚪', right:'No arbitrary arrest',                article:'Article 9'  },
+  { id:10, name:'Julian',  emoji:'🏛️', right:'Right to a fair trial',              article:'Article 10' },
+  { id:11, name:'Grace',   emoji:'🕊️', right:'Innocent until proven guilty',       article:'Article 11' },
+  { id:12, name:'Sage',    emoji:'🔒', right:'Right to privacy',                   article:'Article 12' },
+  { id:13, name:'Miles',   emoji:'🗺️', right:'Freedom of movement',                article:'Article 13' },
+  { id:14, name:'Haven',   emoji:'🏠', right:'Right to asylum',                    article:'Article 14' },
+  { id:15, name:'Nia',     emoji:'🌍', right:'Right to nationality',               article:'Article 15' },
+  { id:16, name:'Cora',    emoji:'💍', right:'Right to marry & family',            article:'Article 16' },
+  { id:17, name:'Petra',   emoji:'🏡', right:'Right to own property',              article:'Article 17' },
+  { id:18, name:'Theo',    emoji:'💭', right:'Freedom of thought & conscience',    article:'Article 18' },
+  { id:19, name:'Joy',     emoji:'📢', right:'Freedom of expression',              article:'Article 19' },
+  { id:20, name:'Unity',   emoji:'✊', right:'Freedom of assembly',                article:'Article 20' },
+  { id:21, name:'Vera',    emoji:'🗳️', right:'Right to participate in government', article:'Article 21' },
+  { id:22, name:'Noor',    emoji:'🌟', right:'Right to social security',           article:'Article 22' },
+  { id:23, name:'Earnest', emoji:'🔨', right:'Right to work',                      article:'Article 23' },
+  { id:24, name:'Lax',     emoji:'🌙', right:'Right to rest & leisure',            article:'Article 24' },
+  { id:25, name:'Flora',   emoji:'🌾', right:'Adequate standard of living',        article:'Article 25' },
+  { id:26, name:'Wren',    emoji:'📚', right:'Right to education',                 article:'Article 26' },
+  { id:27, name:'Lila',    emoji:'🎨', right:'Right to cultural life & arts',      article:'Article 27' },
+  { id:28, name:'Atlas',   emoji:'🌐', right:'Right to a supportive social order', article:'Article 28' },
+  { id:29, name:'Caden',   emoji:'🤲', right:'Duties to community',               article:'Article 29' },
+  { id:30, name:'Anchor',  emoji:'⚓', right:'Rights can never be taken away',     article:'Article 30' },
+];
+
+// ── Special cards ─────────────────────────────────────────────────────────────
+const SPECIALS = [
+  { type:'shield',    name:'SHIELD',     emoji:'🛡',  desc:'Block any violation. No match needed.',           color:'green'  },
+  { type:'shield',    name:'SHIELD',     emoji:'🛡',  desc:'Block any violation. No match needed.',           color:'green'  },
+  { type:'shield',    name:'SHIELD',     emoji:'🛡',  desc:'Block any violation. No match needed.',           color:'green'  },
+  { type:'escalate',  name:'ESCALATE',   emoji:'⚡',  desc:'Redirect the violation. Opponent draws 2.',       color:'red'    },
+  { type:'escalate',  name:'ESCALATE',   emoji:'⚡',  desc:'Redirect the violation. Opponent draws 2.',       color:'red'    },
+  { type:'escalate',  name:'ESCALATE',   emoji:'⚡',  desc:'Redirect the violation. Opponent draws 2.',       color:'red'    },
+  { type:'solidarity',name:'SOLIDARITY', emoji:'✌️', desc:'Play 2 rights at once. Clear 2 cards.',           color:'purple' },
+  { type:'solidarity',name:'SOLIDARITY', emoji:'✌️', desc:'Play 2 rights at once. Clear 2 cards.',           color:'purple' },
+  { type:'nope',      name:'NOPE',       emoji:'🚫',  desc:"Cancel the opponent's next special card.",        color:'gold'   },
+  { type:'nope',      name:'NOPE',       emoji:'🚫',  desc:"Cancel the opponent's next special card.",        color:'gold'   },
+];
+
+// ── Violations ────────────────────────────────────────────────────────────────
+// Each maps to a right id (the correct counter)
+const VIOLATIONS = [
+  { rightId:19, text:"Per policy 7.4, employee communications must be reviewed by management before public distribution.", hint:"Someone's voice is being suppressed." },
+  { rightId:9,  text:"Sir, you need to come with us. No, we don't have paperwork. Yes, you're being detained. No, we can't say why.", hint:"Taken without cause or explanation." },
+  { rightId:26, text:"Your daughter cannot enroll until we verify your documentation status. All of it. Starting with 2019.", hint:"A child is being denied access." },
+  { rightId:12, text:"We've installed monitoring software on all company devices, including the one you take home. Standard procedure.", hint:"Someone's private life is being watched." },
+  { rightId:23, text:"We're reclassifying your role as 'independent contractor.' Same work, same hours. No benefits. Sign here.", hint:"Work conditions have just changed — unfairly." },
+  { rightId:18, text:"This curriculum must be approved by the district committee. Philosophy sections flagged for review.", hint:"What someone is allowed to think about is being restricted." },
+  { rightId:14, text:"Your asylum application has been denied. You have 48 hours to self-deport. No, there is no appeal.", hint:"Someone fleeing harm has been turned away." },
+  { rightId:20, text:"The permit for your gathering has been revoked. Gatherings of more than 4 people require 30 days notice. Retroactively.", hint:"People cannot meet together freely." },
+  { rightId:10, text:"The hearing will be closed to the public. Your attorney has been given 15 minutes. Verdict is tonight.", hint:"The process of justice itself is broken." },
+  { rightId:2,  text:"We don't rent to Section 8. We don't rent to... certain backgrounds. It's a private policy.", hint:"Someone is being treated differently without justification." },
+  { rightId:25, text:"The shelter is full. The food bank closed. The clinic has a 6-month waitlist. Have you tried GoFundMe?", hint:"Basic human needs are going unmet." },
+  { rightId:13, text:"Your travel documents have been flagged. You cannot board. You cannot leave. The flag cannot be explained.", hint:"Someone cannot go where they need to go." },
+  { rightId:21, text:"Voting in this precinct requires a photo ID, a utility bill, a birth certificate, and an appointment made 90 days in advance.", hint:"The right to participate is being buried in paperwork." },
+  { rightId:5,  text:"Enhanced interrogation has been approved for use in this facility. It's not torture — it's protocol.", hint:"Someone is being hurt and it's being called something else." },
+  { rightId:11, text:"We're announcing charges. Frankly, where there's smoke there's fire. The public deserves to know.", hint:"Someone is being condemned before a verdict." },
+];
+
+// ── Opponent ──────────────────────────────────────────────────────────────────
+const BUREAUCRAT = {
+  name: 'THE BUREAUCRAT',
+  emoji: '📋',
+  quips: [
+    "Policy is policy.",
+    "I don't make the rules, I just enforce them.",
+    "Have you tried filling out a form?",
+    "This is above my pay grade. And yours.",
+    "Per regulation 4.7 subsection B...",
+    "I understand your frustration. Unfortunately.",
+    "We've always done it this way.",
+    "There's a process for this. Several, actually.",
+    "My hands are tied. Metaphorically. Mostly.",
+    "The system works. For some people.",
+    "You'll need to speak to my supervisor. Who is unavailable.",
+    "That's not how any of this works. As I understand it.",
+  ],
+  winQuip: "I'll be filing a complaint about this outcome.",
+  loseQuip: "The paperwork on this loss will take months.",
+};
+
+// ── Game State ────────────────────────────────────────────────────────────────
+let STATE = {
+  deck: [],
+  hand: [],
+  oppHand: [],
+  violations: [],
+  activeViolation: null,
+  oppHandCount: 5,
+  waitingForSecondSolidarity: false,
+  firstSolidarity: null,
+  blocked: false, // opponent's next special is NOPEd
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function setQuip(text) {
+  const el = document.getElementById('opponent-quip');
+  el.style.opacity = 0;
+  setTimeout(() => { el.textContent = text; el.style.opacity = 1; }, 200);
+}
+
+function showFeedback(msg, type) {
+  const el = document.getElementById('feedback');
+  el.textContent = msg;
+  el.className = type;
+  el.style.display = 'block';
+  clearTimeout(el._timeout);
+  el._timeout = setTimeout(() => { el.style.display = 'none'; }, 3200);
+}
+
+function updateHUD() {
+  document.getElementById('hud-hand').textContent = STATE.hand.length;
+  document.getElementById('hud-deck').textContent = STATE.deck.length;
+}
+
+function renderOppHand() {
+  const el = document.getElementById('opponent-hand');
+  el.innerHTML = STATE.oppHand.map(() =>
+    `<div class="opp-card-back"></div>`
+  ).join('');
+  document.getElementById('opponent-hand-count').textContent =
+    `${STATE.oppHand.length} card${STATE.oppHand.length !== 1 ? 's' : ''}`;
+}
+
+// ── Build Decks ───────────────────────────────────────────────────────────────
+function buildDecks() {
+  // Player deck: all 30 rights + 10 specials
+  const rightCards = RIGHTS.map(r => ({ ...r, cardType: 'right' }));
+  const specialCards = SPECIALS.map(s => ({ ...s, cardType: 'special' }));
+  STATE.deck = shuffle([...rightCards, ...specialCards]);
+
+  // Violation deck
+  STATE.violations = shuffle([...VIOLATIONS]);
+
+  // Opponent hand: 5 violations to start
+  STATE.oppHand = STATE.violations.splice(0, 5);
+}
+
+// ── Start Game ────────────────────────────────────────────────────────────────
+function startGame() {
+  buildDecks();
+  STATE.hand = [];
+  STATE.activeViolation = null;
+  STATE.waitingForSecondSolidarity = false;
+  STATE.firstSolidarity = null;
+  STATE.blocked = false;
+
+  // Deal 5 cards
+  for (let i = 0; i < 5; i++) dealToPlayer();
+
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('end-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'flex';
+
+  renderOppHand();
+  updateHUD();
+  oppPlayViolation();
+}
+
+function showTitle() {
+  document.getElementById('end-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('title-screen').style.display = 'flex';
+}
+
+// ── Deal ──────────────────────────────────────────────────────────────────────
+function dealToPlayer() {
+  if (STATE.deck.length === 0) {
+    showFeedback("The deck is empty. Hold what you have.", 'info');
+    return false;
+  }
+  STATE.hand.push(STATE.deck.shift());
+  return true;
+}
+
+function drawCard() {
+  if (!STATE.activeViolation) {
+    showFeedback("Wait for the Bureaucrat to play a violation first.", 'info');
+    return;
+  }
+  if (STATE.hand.length >= 8) {
+    showFeedback("Your hand is full. Play a card first.", 'info');
+    return;
+  }
+  const drew = dealToPlayer();
+  if (drew) {
+    renderHand();
+    updateHUD();
+    setQuip(pick(BUREAUCRAT.quips));
+    showFeedback("Card drawn. Choose wisely.", 'info');
+  }
+}
+
+// ── Opponent plays ────────────────────────────────────────────────────────────
+function oppPlayViolation() {
+  if (STATE.oppHand.length === 0) {
+    // Refill from remaining violations
+    if (STATE.violations.length === 0) {
+      endGame('win');
+      return;
+    }
+    const refill = Math.min(3, STATE.violations.length);
+    STATE.oppHand = STATE.violations.splice(0, refill);
+    renderOppHand();
+  }
+
+  // Pop a violation from opponent's hand
+  const v = STATE.oppHand.shift();
+  STATE.activeViolation = v;
+  renderOppHand();
+
+  // Show violation card
+  document.getElementById('empty-violation').style.display = 'none';
+  const vc = document.getElementById('violation-card');
+  vc.style.display = 'block';
+  vc.classList.remove('shake');
+  void vc.offsetWidth;
+
+  const right = RIGHTS.find(r => r.id === v.rightId);
+  document.getElementById('violation-article').textContent =
+    `Targets ${right.name} · ${right.article}`;
+  document.getElementById('violation-text').textContent = v.text;
+  document.getElementById('violation-hint').textContent = v.hint;
+
+  setQuip(pick(BUREAUCRAT.quips));
+  updateHUD();
+  renderHand();
+}
+
+// ── Player plays a card ───────────────────────────────────────────────────────
+function playCard(index) {
+  const card = STATE.hand[index];
+  if (!card) return;
+
+  // SOLIDARITY second card
+  if (STATE.waitingForSecondSolidarity) {
+    resolveSecondSolidarity(index, card);
+    return;
+  }
+
+  // No active violation
+  if (!STATE.activeViolation) {
+    showFeedback("No violation to counter right now.", 'info');
+    return;
+  }
+
+  if (card.cardType === 'right') {
+    playRightCard(index, card);
+  } else {
+    playSpecialCard(index, card);
+  }
+}
+
+function playRightCard(index, card) {
+  const v = STATE.activeViolation;
+
+  if (card.id === v.rightId) {
+    // Correct!
+    removeFromHand(index);
+    showFeedback(
+      `✓ ${card.name} upheld. ${card.right} — ${card.article}. The violation is countered.`,
+      'correct'
+    );
+    setQuip(pick(BUREAUCRAT.quips));
+    afterViolationCleared();
+  } else {
+    // Wrong — card stays, shake violation
+    showFeedback(
+      `✗ ${card.name} doesn't counter this. Think about what right is specifically threatened here.`,
+      'wrong'
+    );
+    const vc = document.getElementById('violation-card');
+    vc.classList.remove('shake');
+    void vc.offsetWidth;
+    vc.classList.add('shake');
+    setQuip("That's not the relevant policy, I'm afraid.");
+  }
+}
+
+function playSpecialCard(index, card) {
+  const v = STATE.activeViolation;
+  removeFromHand(index);
+
+  if (card.type === 'shield') {
+    showFeedback("🛡 Shield played. Violation blocked. No match needed.", 'special');
+    setQuip("I'll need to escalate this to my supervisor.");
+    afterViolationCleared();
+
+  } else if (card.type === 'escalate') {
+    showFeedback("⚡ Escalate played. Violation redirected — Bureaucrat draws 2 more violations.", 'special');
+    // Refill opp hand with 2 more violations
+    const extra = STATE.violations.splice(0, Math.min(2, STATE.violations.length));
+    STATE.oppHand.push(...extra);
+    renderOppHand();
+    setQuip("This is highly irregular. I'll be noting this in your file.");
+    afterViolationCleared();
+
+  } else if (card.type === 'solidarity') {
+    // First solidarity — ask for second card
+    STATE.waitingForSecondSolidarity = true;
+    STATE.firstSolidarity = { card, originalIndex: index };
+    showFeedback("✌️ Solidarity! Now play a second rights card to clear 2 violations.", 'special');
+    setQuip("Two at once? That's unprecedented.");
+    renderHand();
+    return;
+
+  } else if (card.type === 'nope') {
+    STATE.blocked = true;
+    showFeedback("🚫 NOPE! The Bureaucrat's next special move is cancelled.", 'special');
+    setQuip("...I wasn't going to do anything special anyway.");
+    // Violation stays — NOPE doesn't clear it, it blocks a future special
+    renderHand();
+    updateHUD();
+  }
+}
+
+function resolveSecondSolidarity(index, card) {
+  STATE.waitingForSecondSolidarity = false;
+  const v = STATE.activeViolation;
+
+  if (card.cardType !== 'right') {
+    showFeedback("Solidarity needs a rights card as the second play.", 'wrong');
+    STATE.waitingForSecondSolidarity = false;
+    renderHand();
+    return;
+  }
+
+  if (card.id === v.rightId) {
+    removeFromHand(index);
+    // Draw an extra violation to clear (bonus)
+    const bonus = STATE.oppHand.shift();
+    if (bonus) {
+      showFeedback(`✌️ Solidarity! ${card.name} counters the violation — AND clears a bonus violation from the Bureaucrat's hand.`, 'special');
+    } else {
+      showFeedback(`✌️ Solidarity! ${card.name} counters the violation.`, 'special');
+    }
+    renderOppHand();
+    afterViolationCleared();
+  } else {
+    showFeedback(`✗ ${card.name} doesn't counter this violation. Solidarity failed — try a different card.`, 'wrong');
+    STATE.waitingForSecondSolidarity = false;
+    renderHand();
+  }
+}
+
+function removeFromHand(index) {
+  STATE.hand.splice(index, 1);
+}
+
+function afterViolationCleared() {
+  STATE.activeViolation = null;
+  document.getElementById('violation-card').style.display = 'none';
+  document.getElementById('empty-violation').style.display = 'block';
+
+  renderHand();
+  updateHUD();
+
+  // Check win
+  if (STATE.hand.length === 0) {
+    setTimeout(() => endGame('win'), 600);
+    return;
+  }
+
+  // Opponent plays next violation after delay
+  setTimeout(() => oppPlayViolation(), 1200);
+}
+
+// ── Render hand ───────────────────────────────────────────────────────────────
+function renderHand() {
+  const container = document.getElementById('hand');
+  container.innerHTML = '';
+
+  STATE.hand.forEach((card, i) => {
+    const el = document.createElement('div');
+
+    if (card.cardType === 'right') {
+      el.className = 'card right-card';
+      el.innerHTML = `
+        <div class="card-corner">${card.article}</div>
+        <div class="card-emoji">${card.emoji}</div>
+        <div class="card-name">${card.name}</div>
+        <div class="card-right">${card.right}</div>
+        <div class="card-article">RIGHTS CARD</div>
+      `;
+    } else {
+      el.className = `card ${card.type}-card`;
+      el.innerHTML = `
+        <div class="card-corner">SPECIAL</div>
+        <div class="card-emoji">${card.emoji}</div>
+        <div class="card-special-name">${card.name}</div>
+        <div class="card-special-desc">${card.desc}</div>
+      `;
+    }
+
+    // Highlight correct card subtly when violation is active
+    if (STATE.activeViolation && card.cardType === 'right' &&
+        card.id === STATE.activeViolation.rightId) {
+      el.style.borderColor = 'rgba(74,158,106,0.5)';
+    }
+
+    // Solidarity waiting state
+    if (STATE.waitingForSecondSolidarity && card.cardType !== 'right') {
+      el.classList.add('disabled');
+    }
+
+    el.onclick = () => playCard(i);
+    container.appendChild(el);
+  });
+
+  updateHUD();
+}
+
+// ── End Game ──────────────────────────────────────────────────────────────────
+function endGame(result) {
+  document.getElementById('game-screen').style.display = 'none';
+  const end = document.getElementById('end-screen');
+  end.style.display = 'flex';
+
+  document.getElementById('end-opponent').textContent = BUREAUCRAT.emoji;
+
+  if (result === 'win') {
+    document.getElementById('end-result').textContent = 'UPHELD';
+    document.getElementById('end-result').className = 'win';
+    document.getElementById('end-message').textContent =
+      `The Bureaucrat has run out of violations. You cleared your hand. Every right you played today belongs to everyone — including the people who tried to take them away. "${BUREAUCRAT.winQuip}"`;
+  } else {
+    document.getElementById('end-result').textContent = 'OVERRULED';
+    document.getElementById('end-result').className = 'lose';
+    document.getElementById('end-message').textContent =
+      `The violations piled up. But these rights don't expire. Knowing them is the first step to defending them. Play again. "${BUREAUCRAT.loseQuip}"`;
+  }
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+</script>
+</body>
+</html>
