@@ -3,285 +3,1127 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The 30</title>
+<title>The 30 — Rita's Story</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Georgia, serif; background: #0a0a0a; color: #f0f0f0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-  h1 { font-size: 3rem; letter-spacing: 0.2em; margin-bottom: 8px; }
-  .subtitle { color: #888; margin-bottom: 40px; font-style: italic; }
-  #community { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; max-width: 800px; margin-bottom: 40px; }
-  .resident { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 20px; width: 140px; text-align: center; cursor: pointer; transition: all 0.2s; }
-  .resident:hover { border-color: #f0c040; transform: translateY(-2px); }
-  .resident .avatar { font-size: 2.5rem; margin-bottom: 8px; }
-  .resident .name { font-size: 1rem; font-weight: bold; margin-bottom: 4px; }
-  .resident .article { font-size: 0.7rem; color: #888; }
-  #scenario-box { background: #1a1a1a; border: 1px solid #444; border-radius: 12px; padding: 24px; max-width: 600px; width: 100%; margin-bottom: 24px; display: none; }
-  #scenario-text { font-size: 1rem; line-height: 1.6; margin-bottom: 20px; color: #ddd; }
-  #choices { display: flex; flex-direction: column; gap: 10px; }
-  .choice-btn { background: #222; border: 1px solid #444; color: #f0f0f0; padding: 12px 16px; border-radius: 8px; cursor: pointer; text-align: left; font-size: 0.9rem; transition: all 0.15s; }
-  .choice-btn:hover { border-color: #f0c040; background: #2a2a2a; }
-  .choice-btn.correct { border-color: #4caf50; background: #1a2e1a; }
-  .choice-btn.wrong { border-color: #e53935; background: #2e1a1a; }
-  #feedback { margin-top: 16px; padding: 12px; border-radius: 8px; display: none; line-height: 1.5; }
-  #feedback.correct { background: #1a2e1a; border: 1px solid #4caf50; color: #81c784; }
-  #feedback.wrong { background: #2e1a1a; border: 1px solid #e53935; color: #ef9a9a; }
-  #next-btn { margin-top: 16px; background: #f0c040; color: #0a0a0a; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: bold; display: none; }
-  #score { color: #888; font-size: 0.9rem; margin-bottom: 16px; }
-  #start-btn { background: #f0c040; color: #0a0a0a; border: none; padding: 14px 32px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; }
-  .locked { opacity: 0.3; filter: grayscale(1); cursor: default; }
-  .locked:hover { transform: none; border-color: #333; }
+:root {
+  --ink: #1a1208;
+  --paper: #f5f0e8;
+  --warm: #c8956c;
+  --gold: #d4a853;
+  --muted: #8a7968;
+  --shadow: rgba(26,18,8,0.15);
+  --rita: #7b4f3a;
+  --trust-0: #c0bab2;
+  --trust-1: #c8956c;
+  --trust-2: #d4a853;
+  --trust-3: #6a9e6f;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  background: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* ── Game container ── */
+#game {
+  width: 100%;
+  max-width: 860px;
+  min-height: 560px;
+  background: var(--paper);
+  border-radius: 4px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,168,83,0.3);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Screens ── */
+.screen { display: none; flex-direction: column; flex: 1; }
+.screen.active { display: flex; }
+
+/* ══════════════════════════════════════════
+   TITLE SCREEN
+══════════════════════════════════════════ */
+#title-screen {
+  background: var(--ink);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+#title-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(212,168,83,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.title-eyebrow {
+  font-family: 'Source Serif 4', serif;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--gold);
+  font-size: 0.85rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.3s forwards;
+}
+
+.title-main {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(4rem, 12vw, 7rem);
+  color: var(--paper);
+  line-height: 0.9;
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.5s forwards;
+}
+
+.title-sub {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1rem, 3vw, 1.4rem);
+  color: var(--gold);
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.7s forwards;
+}
+
+.title-intro {
+  font-size: 0.95rem;
+  color: var(--muted);
+  max-width: 440px;
+  line-height: 1.8;
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.9s forwards;
+}
+
+.btn-primary {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--gold);
+  border: none;
+  padding: 14px 40px;
+  border-radius: 2px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  opacity: 0;
+  animation: fadeUp 0.8s 1.1s forwards;
+}
+.btn-primary:hover { background: var(--warm); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212,168,83,0.3); }
+
+/* ══════════════════════════════════════════
+   VISUAL NOVEL SCREEN
+══════════════════════════════════════════ */
+#vn-screen { flex: 1; position: relative; }
+
+/* Background scene */
+#vn-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #e8e0d0 0%, #d4c9b5 60%, #c4b89f 100%);
+  transition: background 0.8s;
+}
+
+/* Character portraits area */
+#vn-stage {
+  position: absolute;
+  inset: 0;
+  bottom: 180px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 40px;
+  pointer-events: none;
+}
+
+.portrait {
+  width: 160px;
+  height: 220px;
+  position: relative;
+  transition: all 0.4s;
+  opacity: 0.4;
+  filter: brightness(0.7);
+}
+.portrait.speaking {
+  opacity: 1;
+  filter: brightness(1);
+  transform: translateY(-8px);
+}
+.portrait.hidden { opacity: 0; transform: translateY(20px); }
+
+.portrait-art {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Rita portrait */
+#rita-portrait .portrait-art {
+  background: linear-gradient(160deg, #8b5e3c 0%, #5c3d25 100%);
+  box-shadow: inset 0 -40px 60px rgba(0,0,0,0.3);
+}
+
+/* Resident portrait */
+#resident-portrait .portrait-art {
+  background: linear-gradient(160deg, #4a6741 0%, #2d4228 100%);
+  box-shadow: inset 0 -40px 60px rgba(0,0,0,0.3);
+}
+
+.portrait-name {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 6px 0;
+  letter-spacing: 0.08em;
+}
+
+/* Dialogue box */
+#vn-dialogue {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(245,240,232,0.97);
+  border-top: 2px solid var(--gold);
+  padding: 20px 28px 24px;
+  min-height: 180px;
+  backdrop-filter: blur(4px);
+}
+
+#dialogue-speaker {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--rita);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  min-height: 20px;
+}
+
+#dialogue-text {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--ink);
+  min-height: 52px;
+}
+
+/* Choices */
+#vn-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.choice {
+  background: transparent;
+  border: 1px solid rgba(26,18,8,0.2);
+  color: var(--ink);
+  padding: 10px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.9rem;
+  text-align: left;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+.choice:hover { background: rgba(212,168,83,0.15); border-color: var(--gold); }
+.choice.correct { background: rgba(106,158,111,0.15); border-color: #6a9e6f; color: #2d5c32; }
+.choice.wrong { background: rgba(180,60,60,0.1); border-color: #b43c3c; color: #7a1a1a; }
+.choice.close { background: rgba(212,168,83,0.15); border-color: var(--gold); }
+
+/* Continue indicator */
+#vn-continue {
+  position: absolute;
+  bottom: 24px;
+  right: 28px;
+  color: var(--gold);
+  font-size: 1.2rem;
+  animation: pulse 1.2s infinite;
+  cursor: pointer;
+  display: none;
+}
+
+/* ══════════════════════════════════════════
+   HUD - Trust & Community
+══════════════════════════════════════════ */
+#hud {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  z-index: 10;
+}
+
+.hud-pill {
+  background: rgba(26,18,8,0.75);
+  color: var(--paper);
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(4px);
+}
+
+.trust-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 6px;
+}
+.trust-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--trust-0);
+  transition: background 0.3s;
+}
+.trust-dot.filled-1 { background: var(--trust-1); }
+.trust-dot.filled-2 { background: var(--trust-2); }
+.trust-dot.filled-3 { background: var(--trust-3); }
+
+/* ══════════════════════════════════════════
+   COMMUNITY MAP SCREEN
+══════════════════════════════════════════ */
+#map-screen {
+  background: var(--paper);
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.map-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.map-sub {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+#resident-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.resident-card {
+  background: white;
+  border: 1px solid rgba(26,18,8,0.1);
+  border-radius: 4px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.resident-card:hover { box-shadow: 0 4px 16px var(--shadow); transform: translateY(-2px); }
+.resident-card.locked { opacity: 0.35; filter: grayscale(1); cursor: default; }
+.resident-card.locked:hover { transform: none; box-shadow: none; }
+.resident-card.displaced { border-color: #b43c3c; background: #fff5f5; }
+
+.rc-emoji { font-size: 2rem; margin-bottom: 6px; }
+.rc-name { font-family: 'Playfair Display', serif; font-size: 0.8rem; color: var(--ink); margin-bottom: 2px; }
+.rc-article { font-size: 0.65rem; color: var(--muted); }
+.rc-trust { display: flex; justify-content: center; gap: 3px; margin-top: 6px; }
+.rc-trust-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--trust-0); }
+.rc-trust-dot.t1 { background: var(--trust-1); }
+.rc-trust-dot.t2 { background: var(--trust-2); }
+.rc-trust-dot.t3 { background: var(--trust-3); }
+
+.displaced-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #b43c3c;
+  color: white;
+  font-size: 0.55rem;
+  padding: 2px 5px;
+  border-radius: 10px;
+  font-family: 'Source Serif 4', serif;
+}
+
+.btn-secondary {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid rgba(26,18,8,0.3);
+  padding: 10px 24px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: rgba(26,18,8,0.05); border-color: var(--ink); }
+
+/* ══════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: slideIn 0.4s forwards; }
+
+/* ══════════════════════════════════════════
+   NOTIFICATION TOAST
+══════════════════════════════════════════ */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.85rem;
+  padding: 10px 24px;
+  border-radius: 20px;
+  border: 1px solid var(--gold);
+  transition: transform 0.4s;
+  z-index: 100;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Mobile */
+@media (max-width: 600px) {
+  #vn-stage { padding: 0 16px; }
+  .portrait { width: 110px; height: 160px; }
+  #vn-dialogue { padding: 16px 16px 20px; min-height: 200px; }
+  #dialogue-text { font-size: 0.9rem; }
+}
 </style>
 </head>
 <body>
 
-<h1>THE 30</h1>
-<p class="subtitle">Every person. Every right. Every time.</p>
+<div id="game">
 
-<div id="score">Community: <span id="resident-count">1</span> / 30 residents · Score: <span id="points">0</span></div>
+  <!-- TITLE SCREEN -->
+  <div id="title-screen" class="screen active">
+    <div class="title-eyebrow">A visual novel about human rights</div>
+    <div class="title-main">THE 30</div>
+    <div class="title-sub">Rita's Story</div>
+    <p class="title-intro">
+      You are Rita — a newly certified human rights consultant. 
+      You've arrived in Rightsborough, a community of thirty residents, 
+      each carrying a right that belongs to all of us.<br><br>
+      Learn their names. Earn their trust. Protect what's theirs.
+    </p>
+    <button class="btn-primary" onclick="startGame()">Begin Rita's Story</button>
+  </div>
 
-<div id="community"></div>
+  <!-- VISUAL NOVEL SCREEN -->
+  <div id="vn-screen" class="screen">
+    <div id="vn-bg"></div>
 
-<div id="scenario-box">
-  <div id="scenario-text"></div>
-  <div id="choices"></div>
-  <div id="feedback"></div>
-  <button id="next-btn" onclick="nextScenario()">Next Scenario →</button>
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-pill" id="hud-community">Community: <span id="hud-count">1</span> / 30</div>
+      <div class="hud-pill" id="hud-displaced" style="display:none">Displaced: <span id="hud-displaced-count">0</span></div>
+    </div>
+
+    <!-- Stage -->
+    <div id="vn-stage">
+      <div id="rita-portrait" class="portrait speaking">
+        <div class="portrait-art">👩🏾</div>
+        <div class="portrait-name">Rita</div>
+      </div>
+      <div id="resident-portrait" class="portrait hidden">
+        <div class="portrait-art" id="resident-emoji"></div>
+        <div class="portrait-name" id="resident-name-tag"></div>
+      </div>
+    </div>
+
+    <!-- Dialogue -->
+    <div id="vn-dialogue">
+      <div id="dialogue-speaker"></div>
+      <div id="dialogue-text"></div>
+      <div id="vn-choices"></div>
+      <div id="vn-continue" onclick="advanceScene()">▼</div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY MAP SCREEN -->
+  <div id="map-screen" class="screen">
+    <div class="map-title">Rightsborough</div>
+    <div class="map-sub">Your community — <span id="map-unlocked">1</span> of 30 residents known</div>
+    <div id="resident-grid"></div>
+    <button class="btn-secondary" onclick="showVN()">← Back to Rita's story</button>
+  </div>
+
 </div>
 
-<button id="start-btn" onclick="startGame()">Begin →</button>
+<div id="toast"></div>
 
 <script>
-// ── i18n foundation — all text lives here ─────────────────────────────────
+// ── i18n foundation ───────────────────────────────────────────────────────────
 const LANG = {
   en: {
-    title: "THE 30",
-    subtitle: "Every person. Every right. Every time.",
-    begin: "Begin →",
-    next: "Next Scenario →",
-    communityLabel: "Community",
-    of: "/",
-    residents: "residents",
-    score: "Score",
-    correct: "✓ Correct.",
-    wrong: "✗ Not quite.",
-    newResident: "has joined your community.",
+    begin: "Begin Rita's Story",
+    community: "Community",
+    displaced: "Displaced",
+    back: "← Back to Rita's story",
+    tryAgain: "Let me think again...",
+    close: "You're seeing something real here.",
+    correct: "That's right.",
+    wrong: "That's not quite it.",
   }
 };
+const t = key => LANG.en[key] || key;
 
-const currentLang = 'en';
-const t = key => LANG[currentLang][key] || key;
-
-// ── Residents — all 30 ────────────────────────────────────────────────────
+// ── Residents ─────────────────────────────────────────────────────────────────
 const RESIDENTS = [
-  { id:1,  name:'Eden',    emoji:'🌱', right:'Equal dignity & freedom',             article:'Article 1'  },
-  { id:2,  name:'Amara',   emoji:'🤝', right:'No discrimination',                   article:'Article 2'  },
-  { id:3,  name:'Vida',    emoji:'💛', right:'Life, liberty & security',             article:'Article 3'  },
-  { id:4,  name:'Solomon', emoji:'⛓️', right:'Freedom from slavery',                article:'Article 4'  },
-  { id:5,  name:'River',   emoji:'🌊', right:'Freedom from torture',                article:'Article 5'  },
-  { id:6,  name:'Justice', emoji:'⚖️', right:'Recognition before the law',          article:'Article 6'  },
-  { id:7,  name:'Equan',   emoji:'🛡️', right:'Equal protection under law',          article:'Article 7'  },
-  { id:8,  name:'Remy',    emoji:'🔑', right:'Right to remedy',                     article:'Article 8'  },
-  { id:9,  name:'Freeman', emoji:'🚪', right:'No arbitrary arrest',                 article:'Article 9'  },
-  { id:10, name:'Julian',  emoji:'🏛️', right:'Right to a fair trial',               article:'Article 10' },
-  { id:11, name:'Grace',   emoji:'🕊️', right:'Innocent until proven guilty',        article:'Article 11' },
-  { id:12, name:'Sage',    emoji:'🔒', right:'Right to privacy',                    article:'Article 12' },
-  { id:13, name:'Miles',   emoji:'🗺️', right:'Freedom of movement',                 article:'Article 13' },
-  { id:14, name:'Haven',   emoji:'🏠', right:'Right to asylum',                     article:'Article 14' },
-  { id:15, name:'Nia',     emoji:'🌍', right:'Right to nationality',                article:'Article 15' },
-  { id:16, name:'Cora',    emoji:'💍', right:'Right to marry & family',             article:'Article 16' },
-  { id:17, name:'Petra',   emoji:'🏡', right:'Right to own property',               article:'Article 17' },
-  { id:18, name:'Theo',    emoji:'💭', right:'Freedom of thought & conscience',     article:'Article 18' },
-  { id:19, name:'Joy',     emoji:'📢', right:'Freedom of expression',               article:'Article 19' },
-  { id:20, name:'Unity',   emoji:'✊', right:'Freedom of assembly',                 article:'Article 20' },
-  { id:21, name:'Vera',    emoji:'🗳️', right:'Right to participate in government',  article:'Article 21' },
-  { id:22, name:'Noor',    emoji:'🌟', right:'Right to social security',            article:'Article 22' },
-  { id:23, name:'Earnest', emoji:'🔨', right:'Right to work',                       article:'Article 23' },
-  { id:24, name:'Lax',     emoji:'🌙', right:'Right to rest & leisure',             article:'Article 24' },
-  { id:25, name:'Flora',   emoji:'🌾', right:'Adequate standard of living',         article:'Article 25' },
-  { id:26, name:'Wren',    emoji:'📚', right:'Right to education',                  article:'Article 26' },
-  { id:27, name:'Lila',    emoji:'🎨', right:'Right to cultural life & arts',       article:'Article 27' },
-  { id:28, name:'Atlas',   emoji:'🌐', right:'Right to a supportive social order',  article:'Article 28' },
-  { id:29, name:'Caden',   emoji:'🤲', right:'Duties to community',                 article:'Article 29' },
-  { id:30, name:'Anchor',  emoji:'⚓', right:'Rights can never be taken away',      article:'Article 30' },
+  { id:1,  name:'Eden',    emoji:'🌱', right:'Equal dignity & freedom',            article:'Article 1',  color:'#4a6741' },
+  { id:2,  name:'Amara',   emoji:'🤝', right:'No discrimination',                  article:'Article 2',  color:'#5c4a7a' },
+  { id:3,  name:'Vida',    emoji:'💛', right:'Life, liberty & security',            article:'Article 3',  color:'#7a4a2a' },
+  { id:4,  name:'Solomon', emoji:'⛓️', right:'Freedom from slavery',               article:'Article 4',  color:'#2a4a5c' },
+  { id:5,  name:'River',   emoji:'🌊', right:'Freedom from torture',               article:'Article 5',  color:'#2a5c5c' },
+  { id:6,  name:'Justice', emoji:'⚖️', right:'Recognition before the law',         article:'Article 6',  color:'#5c4a2a' },
+  { id:7,  name:'Equan',   emoji:'🛡️', right:'Equal protection under law',         article:'Article 7',  color:'#3a3a6a' },
+  { id:8,  name:'Remy',    emoji:'🔑', right:'Right to remedy',                    article:'Article 8',  color:'#6a3a2a' },
+  { id:9,  name:'Freeman', emoji:'🚪', right:'No arbitrary arrest',                article:'Article 9',  color:'#2a4a2a' },
+  { id:10, name:'Julian',  emoji:'🏛️', right:'Right to a fair trial',              article:'Article 10', color:'#4a3a2a' },
+  { id:11, name:'Grace',   emoji:'🕊️', right:'Innocent until proven guilty',       article:'Article 11', color:'#5a5a3a' },
+  { id:12, name:'Sage',    emoji:'🔒', right:'Right to privacy',                   article:'Article 12', color:'#3a5a5a' },
+  { id:13, name:'Miles',   emoji:'🗺️', right:'Freedom of movement',                article:'Article 13', color:'#5a3a5a' },
+  { id:14, name:'Haven',   emoji:'🏠', right:'Right to asylum',                    article:'Article 14', color:'#3a4a3a' },
+  { id:15, name:'Nia',     emoji:'🌍', right:'Right to nationality',               article:'Article 15', color:'#4a5a2a' },
+  { id:16, name:'Cora',    emoji:'💍', right:'Right to marry & family',            article:'Article 16', color:'#7a3a5a' },
+  { id:17, name:'Petra',   emoji:'🏡', right:'Right to own property',              article:'Article 17', color:'#5a4a3a' },
+  { id:18, name:'Theo',    emoji:'💭', right:'Freedom of thought & conscience',    article:'Article 18', color:'#3a3a5a' },
+  { id:19, name:'Joy',     emoji:'📢', right:'Freedom of expression',              article:'Article 19', color:'#7a5a2a' },
+  { id:20, name:'Unity',   emoji:'✊', right:'Freedom of assembly',                article:'Article 20', color:'#5a2a2a' },
+  { id:21, name:'Vera',    emoji:'🗳️', right:'Right to participate in government', article:'Article 21', color:'#2a3a6a' },
+  { id:22, name:'Noor',    emoji:'🌟', right:'Right to social security',           article:'Article 22', color:'#6a5a2a' },
+  { id:23, name:'Earnest', emoji:'🔨', right:'Right to work',                      article:'Article 23', color:'#4a4a2a' },
+  { id:24, name:'Lax',     emoji:'🌙', right:'Right to rest & leisure',            article:'Article 24', color:'#2a2a5a' },
+  { id:25, name:'Flora',   emoji:'🌾', right:'Adequate standard of living',        article:'Article 25', color:'#3a5a2a' },
+  { id:26, name:'Wren',    emoji:'📚', right:'Right to education',                 article:'Article 26', color:'#5a3a3a' },
+  { id:27, name:'Lila',    emoji:'🎨', right:'Right to cultural life & arts',      article:'Article 27', color:'#6a2a6a' },
+  { id:28, name:'Atlas',   emoji:'🌐', right:'Right to a supportive social order', article:'Article 28', color:'#2a5a6a' },
+  { id:29, name:'Caden',   emoji:'🤲', right:'Duties to community',               article:'Article 29', color:'#4a6a4a' },
+  { id:30, name:'Anchor',  emoji:'⚓', right:'Rights can never be taken away',     article:'Article 30', color:'#2a2a2a' },
 ];
 
-// ── Scenarios ─────────────────────────────────────────────────────────────
-// Each scenario: text, correct resident id, explanation, wrong choices (2 other ids)
+// ── Scenarios ─────────────────────────────────────────────────────────────────
 const SCENARIOS = [
   {
-    text: "A journalist is arrested after publishing a story critical of the local government. No charges are filed. She sits in a cell for weeks with no hearing scheduled.",
-    correct: 9,
-    explanation: "Freeman protects everyone from arbitrary arrest and detention. You can't be held without cause and without charge. Joy (Article 19) also applies — but the immediate violation here is the detention itself.",
-    wrongs: [19, 10]
-  },
-  {
-    text: "A school tells a student she cannot wear her hijab to class, saying it disrupts the learning environment.",
-    correct: 18,
-    explanation: "Theo stands for freedom of thought, conscience, and religion — including the right to practice and express your faith. This is a direct violation.",
-    wrongs: [2, 26]
-  },
-  {
-    text: "A family fleeing violence in their home country is turned away at the border and sent back.",
-    correct: 14,
-    explanation: "Haven protects the right to seek asylum in other countries when facing persecution. Turning someone away into danger violates this right.",
-    wrongs: [13, 15]
-  },
-  {
-    text: "An employer pays women 30% less than men for identical work and refuses to promote them.",
-    correct: 23,
-    explanation: "Earnest protects the right to work under just and favorable conditions — including equal pay. This is also tied to Amara (Article 2, no discrimination), but the labor rights violation is primary here.",
-    wrongs: [2, 7]
-  },
-  {
-    text: "The government shuts down all internet access before a planned peaceful protest.",
+    residentId: 19, // Joy
+    setup: [
+      { speaker: 'Rita', text: "Joy runs the community newsletter. She's been printing it out of her kitchen for six years — local news, school announcements, letters to the editor. People love it." },
+      { speaker: 'Joy', text: "Last week the city council sent me a letter. They said my newsletter was 'causing unrest' and that if I kept publishing, they'd pursue legal action. Rita... can they do that?" },
+      { speaker: 'Rita', text: "Tell me exactly what they said. Word for word if you can." },
+      { speaker: 'Joy', text: "They said my coverage of the rezoning vote was 'inflammatory.' That I was 'stirring up the community against the council.' I was just reporting what happened at the meeting." },
+    ],
+    question: "Which right is being threatened here?",
     correct: 19,
-    explanation: "Joy stands for freedom of expression — which includes access to information and communication. Blocking the internet to suppress organizing violates this right directly.",
-    wrongs: [20, 12]
+    close: [9, 20],
+    closeMsg: "You're seeing something real — this situation does touch on {name}'s right to {right}. But the primary threat here is to Joy's freedom of expression. Publishing a newsletter is protected speech. The council cannot suppress reporting on their own decisions.",
+    correctMsg: "Exactly right. Joy's right to freedom of expression is directly threatened. A government body cannot use legal threats to silence a journalist — even a community one — for reporting on public meetings.",
+    wrongMsg: "Not quite. Think about what Joy actually does — she publishes information. The threat is aimed at that act specifically.",
+    options: [19, 9, 20, 12],
   },
   {
-    text: "A person is convicted of a crime in a secret trial with no lawyer and no right to appeal.",
-    correct: 10,
-    explanation: "Julian protects the right to a fair and public hearing by an independent tribunal. Secret trials with no legal representation are a fundamental violation.",
-    wrongs: [11, 6]
+    residentId: 9, // Freeman
+    setup: [
+      { speaker: 'Rita', text: "Freeman owns the hardware store on Third Street. He's been there for eighteen years. His family knows everyone." },
+      { speaker: 'Freeman', text: "They took my nephew. Tuesday morning, outside the school. He was dropping off my daughter. Just — took him. No explanation. No paperwork. He's been gone four days." },
+      { speaker: 'Rita', text: "Has he been charged with anything?" },
+      { speaker: 'Freeman', text: "Nothing. No one will tell us where he is. His lawyer can't get information. My sister hasn't slept. We don't even know if he's okay." },
+    ],
+    question: "What right has Freeman's nephew had violated?",
+    correct: 9,
+    close: [10, 6],
+    closeMsg: "You're not wrong that {name}'s right to {right} is also implicated here. But the first and most urgent violation is the detention itself — taken with no charge, no explanation, no access to family or counsel. That's arbitrary arrest.",
+    correctMsg: "Yes. Freeman's nephew has been arbitrarily detained — no charges, no transparency, no access to legal counsel. This is a direct violation of Article 9. The family has the right to know where he is and why he's being held.",
+    wrongMsg: "Think about what happened first, before anything else — he was taken without explanation or charge.",
+    options: [9, 10, 6, 3],
   },
   {
-    text: "A landlord evicts an elderly tenant specifically because of her age, with no legal process.",
-    correct: 2,
-    explanation: "Amara protects everyone from discrimination — including on the basis of age. Combined with the lack of legal process, this hits multiple rights, but discrimination is the root.",
-    wrongs: [17, 9]
-  },
-  {
-    text: "Children in a rural district have no school within 50 miles and the government provides no alternative.",
+    residentId: 26, // Wren
+    setup: [
+      { speaker: 'Rita', text: "Wren is twelve years old. She lives on the east side of Rightsborough with her grandmother, who moved here from another country three years ago." },
+      { speaker: 'Wren', text: "They said I can't go to school here anymore. Because of my grandma's paperwork. But I was born here. This is my home." },
+      { speaker: 'Rita', text: "Did the school give you anything in writing?" },
+      { speaker: 'Wren', text: "A letter. It says 'enrollment suspended pending documentation review.' I've been at home for three weeks. My grandma cries about it." },
+    ],
+    question: "What right is being denied to Wren?",
     correct: 26,
-    explanation: "Wren protects the right to education. Governments have an obligation to make elementary education available and accessible to everyone.",
-    wrongs: [25, 29]
+    close: [2, 15],
+    closeMsg: "You're right that {name}'s right ({right}) is woven into this situation. But the immediate, concrete denial is Wren's right to education. A child born in this country cannot be excluded from school based on a family member's documentation status.",
+    correctMsg: "Correct. Wren has an unconditional right to education. Her grandmother's immigration status has no bearing on Wren's own right to attend school. This is a clear violation of Article 26.",
+    wrongMsg: "Think about the most direct, concrete thing being denied to Wren right now — what was she doing before this happened?",
+    options: [26, 2, 15, 25],
   },
   {
-    text: "A worker is forced to work 16-hour days, 7 days a week, with no days off and no overtime pay.",
-    correct: 24,
-    explanation: "Lax protects the right to rest, leisure, reasonable working hours, and periodic paid holidays. This is a clear violation of Article 24.",
-    wrongs: [23, 25]
+    residentId: 18, // Theo
+    setup: [
+      { speaker: 'Rita', text: "Theo teaches philosophy at the community college. He's known for asking hard questions — that's his whole thing." },
+      { speaker: 'Theo', text: "The administration called me in last week. A student complained that my views on ethics were 'personally offensive.' They're asking me to submit my lesson plans for pre-approval going forward." },
+      { speaker: 'Rita', text: "What were you teaching?" },
+      { speaker: 'Theo', text: "We were discussing moral philosophy. Different frameworks. I presented arguments I personally disagree with, alongside arguments I believe in. That's... teaching." },
+    ],
+    question: "Which right is under pressure here?",
+    correct: 18,
+    close: [19, 26],
+    closeMsg: "{name}'s right to {right} is genuinely connected — this touches on expression and education both. But the root of what's being threatened is Theo's freedom of thought and conscience — the right to hold, explore, and teach ideas without institutional suppression.",
+    correctMsg: "Right. Freedom of thought and conscience includes the right to explore and teach ideas — especially uncomfortable ones. Pre-approving lesson plans to prevent ideas from being presented is a suppression of intellectual freedom.",
+    wrongMsg: "Look at what the administration is trying to control — not just what Theo says, but what he's allowed to think through with his students.",
+    options: [18, 19, 26, 12],
   },
   {
-    text: "Police raid a private home without a warrant and read through personal messages and diaries.",
-    correct: 12,
-    explanation: "Sage protects the right to privacy — in your home, your correspondence, and your personal life. Unauthorized searches violate this directly.",
-    wrongs: [9, 17]
+    residentId: 23, // Earnest
+    setup: [
+      { speaker: 'Rita', text: "Earnest has worked at the warehouse on the edge of town for nine years. He's got a reputation for being reliable — always early, never complains." },
+      { speaker: 'Earnest', text: "They brought in a new supervisor six months ago. Since then, the Somali guys on our floor — we get the worst shifts, the most dangerous equipment, the least overtime. Same work. Different treatment." },
+      { speaker: 'Rita', text: "Have you documented any of this?" },
+      { speaker: 'Earnest', text: "I kept a log. Dates, assignments, who got what. It's clear as day. But when I brought it to HR, they said it was 'scheduling decisions' and that if I kept pushing, they'd find reasons to let me go." },
+    ],
+    question: "What right is being violated in Earnest's workplace?",
+    correct: 23,
+    close: [2, 7],
+    closeMsg: "You're seeing it — {name}'s right ({right}) is absolutely part of this. But the specific violation here is Earnest's right to work under just and favorable conditions, free from discriminatory treatment. Article 23 covers not just having a job, but the conditions and equity of that work.",
+    correctMsg: "Yes. The right to work includes the right to just and favorable working conditions — equal pay, equal opportunity, and freedom from discriminatory assignment. What's happening to Earnest's team is a violation of Article 23.",
+    wrongMsg: "Think about the workplace specifically — it's not just that he has a job, it's about the conditions and fairness of how he's treated while doing it.",
+    options: [23, 2, 7, 9],
   },
 ];
 
-// ── Game state ────────────────────────────────────────────────────────────
-let state = {
+// ── Game state ────────────────────────────────────────────────────────────────
+const STATE = {
   unlockedCount: 1,
-  points: 0,
+  trust: {},        // residentId → 0-3
+  displaced: [],    // residentId[]
+  correctStreak: 0, // for returning displaced residents
   scenarioIndex: 0,
-  shuffled: [],
-  answered: false,
+  currentScene: null,
+  sceneStep: 0,
+  waitingForChoice: false,
+  retryCount: 0,
 };
 
-function shuffle(arr) {
-  return [...arr].sort(() => Math.random() - 0.5);
+// ── Screens ───────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
+function showVN() { showScreen('vn-screen'); }
+function showMap() { renderMap(); showScreen('map-screen'); }
 
+// ── Title → Game ──────────────────────────────────────────────────────────────
 function startGame() {
-  document.getElementById('start-btn').style.display = 'none';
-  document.getElementById('scenario-box').style.display = 'block';
-  state.shuffled = shuffle(SCENARIOS);
-  renderCommunity();
-  loadScenario();
+  STATE.trust[1] = 0; // Eden starts at stranger
+  showScreen('vn-screen');
+  playScene('intro');
 }
 
-function renderCommunity() {
-  const container = document.getElementById('community');
-  container.innerHTML = '';
-  document.getElementById('resident-count').textContent = state.unlockedCount;
-  document.getElementById('points').textContent = state.points;
+// ── Scene Engine ──────────────────────────────────────────────────────────────
+const SCENES = {
+  intro: [
+    { speaker: 'Rita', text: "My name is Rita. I'm a human rights consultant — newly certified, if I'm being honest with myself about what that means.", rita: 'speaking', resident: 'hidden' },
+    { speaker: 'Rita', text: "I've come to Rightsborough because someone asked me to. Because this community has needs. Because I have something to offer — or I hope I do.", rita: 'speaking', resident: 'hidden' },
+    { speaker: 'Rita', text: "But I've learned one thing before anything else: you cannot advocate for someone you don't know. Trust comes first. Always.", rita: 'speaking', resident: 'hidden' },
+    { speaker: '', text: "There is someone waiting to meet you.", rita: 'dim', resident: 'hidden', action: 'meetEden' },
+  ],
+  meetEden: [
+    { speaker: 'Rita', text: "There's a small garden at the edge of the block. Someone's tending it — pulling weeds, carefully, like each plant matters.", rita: 'speaking', residentId: 1, resident: 'dim' },
+    { speaker: 'Eden', text: "You must be the consultant. I heard you were coming.", rita: 'dim', residentId: 1, resident: 'speaking' },
+    { speaker: 'Rita', text: "I am. I'm Rita. And you are...?", rita: 'speaking', residentId: 1, resident: 'dim' },
+    { speaker: 'Eden', text: "Eden. I've lived here my whole life. This garden has too, more or less.", rita: 'dim', residentId: 1, resident: 'speaking' },
+    { speaker: 'Rita', text: "It's beautiful. What are you growing?", rita: 'speaking', residentId: 1, resident: 'dim' },
+    { speaker: 'Eden', text: "Right now? Mostly hope. And some tomatoes.", rita: 'dim', residentId: 1, resident: 'speaking' },
+    { speaker: 'Rita', text: "I like that answer.", rita: 'speaking', residentId: 1, resident: 'dim', trustGain: { id: 1, amount: 1 } },
+    { speaker: '', text: "Eden has joined your community. Every person in Rightsborough carries a right — and a story.", rita: 'dim', residentId: 1, resident: 'dim', action: 'unlockEden' },
+  ],
+};
 
-  RESIDENTS.forEach((r, i) => {
-    const locked = i >= state.unlockedCount;
-    const div = document.createElement('div');
-    div.className = 'resident' + (locked ? ' locked' : '');
-    div.innerHTML = `<div class="avatar">${r.emoji}</div><div class="name">${r.name}</div><div class="article">${r.article}</div>`;
-    if (!locked) div.title = r.right;
-    container.appendChild(div);
-  });
+let currentSceneName = null;
+let currentSceneSteps = [];
+let currentStep = 0;
+
+function playScene(sceneName) {
+  currentSceneName = sceneName;
+  currentSceneSteps = SCENES[sceneName];
+  currentStep = 0;
+  renderStep();
 }
 
-function loadScenario() {
-  if (state.scenarioIndex >= state.shuffled.length) {
-    state.scenarioIndex = 0;
-    state.shuffled = shuffle(SCENARIOS);
+function renderStep() {
+  if (currentStep >= currentSceneSteps.length) {
+    endScene();
+    return;
+  }
+  const step = currentSceneSteps[currentStep];
+
+  // Speaker
+  document.getElementById('dialogue-speaker').textContent = step.speaker || '';
+
+  // Text with typewriter feel — just set it for now
+  document.getElementById('dialogue-text').textContent = step.text;
+  document.getElementById('dialogue-text').classList.add('fade-in');
+  setTimeout(() => document.getElementById('dialogue-text').classList.remove('fade-in'), 400);
+
+  // Portraits
+  const ritaEl = document.getElementById('rita-portrait');
+  const resEl  = document.getElementById('resident-portrait');
+
+  ritaEl.className = 'portrait ' + (step.rita === 'speaking' ? 'speaking' : step.rita === 'hidden' ? 'hidden' : '');
+
+  if (step.residentId) {
+    const res = RESIDENTS.find(r => r.id === step.residentId);
+    document.getElementById('resident-emoji').textContent = res.emoji;
+    document.getElementById('resident-name-tag').textContent = res.name;
+    document.getElementById('resident-portrait').style.setProperty('--res-color', res.color);
+    resEl.className = 'portrait ' + (step.resident === 'speaking' ? 'speaking' : step.resident === 'hidden' ? 'hidden' : '');
+    document.getElementById('resident-portrait').querySelector('.portrait-art').style.background =
+      `linear-gradient(160deg, ${res.color}cc 0%, ${res.color}88 100%)`;
+  } else {
+    resEl.className = 'portrait hidden';
   }
 
-  const scenario = state.shuffled[state.scenarioIndex];
-  const correctResident = RESIDENTS.find(r => r.id === scenario.correct);
-  const wrongResidents = scenario.wrongs
-    .map(id => RESIDENTS.find(r => r.id === id))
-    .filter(Boolean);
+  // Trust gain
+  if (step.trustGain) {
+    gainTrust(step.trustGain.id, step.trustGain.amount);
+  }
 
-  const options = shuffle([correctResident, ...wrongResidents]);
+  // Choices or continue
+  document.getElementById('vn-choices').innerHTML = '';
+  document.getElementById('vn-continue').style.display = 'block';
+}
 
-  document.getElementById('scenario-text').textContent = scenario.text;
-  document.getElementById('feedback').style.display = 'none';
-  document.getElementById('feedback').className = 'feedback';
-  document.getElementById('next-btn').style.display = 'none';
-  state.answered = false;
+function advanceScene() {
+  const step = currentSceneSteps[currentStep];
 
-  const choicesEl = document.getElementById('choices');
+  // Execute action if present
+  if (step && step.action) {
+    executeAction(step.action);
+  }
+
+  currentStep++;
+  renderStep();
+}
+
+function executeAction(action) {
+  if (action === 'meetEden') {
+    playScene('meetEden');
+    currentStep = -1; // will increment to 0
+  }
+  if (action === 'unlockEden') {
+    unlockResident(1);
+    setTimeout(() => playScenario(0), 800);
+    currentStep = 999; // end current scene
+  }
+}
+
+function endScene() {
+  document.getElementById('vn-continue').style.display = 'none';
+}
+
+// ── Scenario Engine ───────────────────────────────────────────────────────────
+let currentScenario = null;
+let scenarioSetupStep = 0;
+let scenarioRetries = 0;
+
+function playScenario(index) {
+  if (index >= SCENARIOS.length) {
+    showToast("More stories coming soon...");
+    return;
+  }
+  currentScenario = SCENARIOS[index];
+  scenarioSetupStep = 0;
+  scenarioRetries = 0;
+  STATE.scenarioIndex = index;
+  renderScenarioStep();
+}
+
+function renderScenarioStep() {
+  const s = currentScenario;
+  if (scenarioSetupStep < s.setup.length) {
+    const step = s.setup[scenarioSetupStep];
+    document.getElementById('dialogue-speaker').textContent = step.speaker;
+    document.getElementById('dialogue-text').textContent = step.text;
+    document.getElementById('dialogue-text').classList.add('fade-in');
+    setTimeout(() => document.getElementById('dialogue-text').classList.remove('fade-in'), 400);
+
+    // Portraits
+    const res = RESIDENTS.find(r => r.id === s.residentId);
+    const ritaEl = document.getElementById('rita-portrait');
+    const resEl  = document.getElementById('resident-portrait');
+    document.getElementById('resident-emoji').textContent = res.emoji;
+    document.getElementById('resident-name-tag').textContent = res.name;
+    document.getElementById('resident-portrait').querySelector('.portrait-art').style.background =
+      `linear-gradient(160deg, ${res.color}cc 0%, ${res.color}88 100%)`;
+    resEl.className = 'portrait ' + (step.speaker === res.name ? 'speaking' : '');
+    ritaEl.className = 'portrait ' + (step.speaker === 'Rita' ? 'speaking' : '');
+
+    document.getElementById('vn-choices').innerHTML = '';
+    document.getElementById('vn-continue').style.display = 'block';
+    document.getElementById('vn-continue').onclick = () => {
+      scenarioSetupStep++;
+      renderScenarioStep();
+    };
+  } else {
+    showQuestion();
+  }
+}
+
+function showQuestion() {
+  const s = currentScenario;
+  document.getElementById('dialogue-speaker').textContent = 'Rita';
+  document.getElementById('dialogue-text').textContent = s.question;
+  document.getElementById('vn-continue').style.display = 'none';
+
+  const choicesEl = document.getElementById('vn-choices');
   choicesEl.innerHTML = '';
-  options.forEach(resident => {
+
+  // Build options
+  const options = shuffle(s.options.map(id => RESIDENTS.find(r => r.id === id)));
+  options.forEach(res => {
     const btn = document.createElement('button');
-    btn.className = 'choice-btn';
-    btn.innerHTML = `${resident.emoji} <strong>${resident.name}</strong> — ${resident.right} (${resident.article})`;
-    btn.onclick = () => answer(resident.id === scenario.correct, btn, scenario);
+    btn.className = 'choice fade-in';
+    btn.innerHTML = `${res.emoji} <strong>${res.name}</strong> — ${res.right} (${res.article})`;
+    btn.onclick = () => handleAnswer(res.id, btn);
     choicesEl.appendChild(btn);
   });
 }
 
-function answer(isCorrect, btn, scenario) {
-  if (state.answered) return;
-  state.answered = true;
+function handleAnswer(chosenId, btn) {
+  const s = currentScenario;
+  document.querySelectorAll('.choice').forEach(b => b.onclick = null);
 
-  const feedback = document.getElementById('feedback');
-  feedback.style.display = 'block';
-
-  if (isCorrect) {
+  if (chosenId === s.correct) {
+    // Correct
     btn.classList.add('correct');
-    state.points += 10;
-    feedback.className = 'correct';
+    const res = RESIDENTS.find(r => r.id === s.residentId);
+    document.getElementById('dialogue-speaker').textContent = 'Rita';
+    document.getElementById('dialogue-text').textContent = s.correctMsg;
+    gainTrust(s.residentId, 1);
+    STATE.correctStreak++;
+    checkReturnDisplaced();
 
-    // Unlock next resident if not at max
-    const newResident = RESIDENTS[state.unlockedCount];
-    let newMsg = '';
-    if (state.unlockedCount < 30) {
-      state.unlockedCount++;
-      newMsg = `<br><br>🎉 <strong>${newResident?.name}</strong> has joined your community.`;
+    // Unlock next resident — id is unlockedCount + 1, not unlockedCount
+    setTimeout(() => {
+      const nextId = STATE.unlockedCount + 1;
+      if (nextId <= 30) unlockResident(nextId);
+      setTimeout(() => showBetweenScenes(), 1200);
+    }, 1800);
+
+  } else if (s.close.includes(chosenId)) {
+    // Close answer
+    btn.classList.add('close');
+    const closeRes = RESIDENTS.find(r => r.id === chosenId);
+    const msg = s.closeMsg
+      .replace('{name}', closeRes.name)
+      .replace('{right}', closeRes.right);
+
+    document.getElementById('dialogue-speaker').textContent = 'Rita';
+    document.getElementById('dialogue-text').textContent = msg;
+
+    if (scenarioRetries < 1) {
+      scenarioRetries++;
+      setTimeout(() => addRetryButton(), 1200);
+    } else {
+      handleFinalWrong();
     }
-    feedback.innerHTML = `✓ Correct. ${scenario.explanation}${newMsg}`;
-    renderCommunity();
+
   } else {
+    // Wrong
     btn.classList.add('wrong');
-    feedback.className = 'wrong';
-    feedback.innerHTML = `✗ Not quite. ${scenario.explanation}`;
-    // Show correct answer
-    document.querySelectorAll('.choice-btn').forEach(b => {
-      const correctResident = RESIDENTS.find(r => r.id === scenario.correct);
-      if (b.innerHTML.includes(correctResident.name)) b.classList.add('correct');
-    });
+    document.getElementById('dialogue-speaker').textContent = 'Rita';
+    document.getElementById('dialogue-text').textContent = s.wrongMsg;
+
+    if (scenarioRetries < 1) {
+      scenarioRetries++;
+      setTimeout(() => addRetryButton(), 1200);
+    } else {
+      handleFinalWrong();
+    }
+  }
+}
+
+function addRetryButton() {
+  const choicesEl = document.getElementById('vn-choices');
+  choicesEl.innerHTML = '';
+  const btn = document.createElement('button');
+  btn.className = 'choice fade-in';
+  btn.textContent = 'Let me think again...';
+  btn.onclick = () => showQuestion();
+  choicesEl.appendChild(btn);
+}
+
+function handleFinalWrong() {
+  const s = currentScenario;
+  const res = RESIDENTS.find(r => r.id === s.residentId);
+
+  // Damage trust
+  damageTrust(s.residentId);
+  STATE.correctStreak = 0;
+
+  // Show correct answer
+  setTimeout(() => {
+    document.getElementById('dialogue-speaker').textContent = '';
+    document.getElementById('dialogue-text').textContent =
+      `${res.name} needed an advocate today. The right at stake was ${res.emoji} ${res.name}'s — ${RESIDENTS.find(r=>r.id===s.correct).right}. Rita will carry this forward.`;
+
+    // Check if displaced
+    if ((STATE.trust[s.residentId] || 0) <= 0) {
+      displace(s.residentId);
+    }
+
+    const choicesEl = document.getElementById('vn-choices');
+    choicesEl.innerHTML = '';
+    const btn = document.createElement('button');
+    btn.className = 'choice fade-in';
+    btn.textContent = 'Continue →';
+    btn.onclick = () => showBetweenScenes();
+    choicesEl.appendChild(btn);
+  }, 600);
+}
+
+// ── Trust system ──────────────────────────────────────────────────────────────
+function gainTrust(id, amount) {
+  STATE.trust[id] = Math.min(3, (STATE.trust[id] || 0) + amount);
+  updateHUD();
+}
+
+function damageTrust(id) {
+  STATE.trust[id] = Math.max(0, (STATE.trust[id] || 0) - 1);
+  updateHUD();
+}
+
+function displace(id) {
+  if (!STATE.displaced.includes(id)) {
+    STATE.displaced.push(id);
+    const res = RESIDENTS.find(r => r.id === id);
+    showToast(`${res.emoji} ${res.name} has withdrawn from the community.`);
+    updateHUD();
+  }
+}
+
+function checkReturnDisplaced() {
+  if (STATE.correctStreak >= 3 && STATE.displaced.length > 0) {
+    const returnId = STATE.displaced.shift();
+    const res = RESIDENTS.find(r => r.id === returnId);
+    STATE.trust[returnId] = 1;
+    STATE.correctStreak = 0;
+    showToast(`${res.emoji} ${res.name} has returned to Rightsborough.`);
+    updateHUD();
+  }
+}
+
+// ── Unlock ────────────────────────────────────────────────────────────────────
+function unlockResident(id) {
+  if (id > STATE.unlockedCount) STATE.unlockedCount = id;
+  if (!STATE.trust[id]) STATE.trust[id] = 0;
+  const res = RESIDENTS.find(r => r.id === id);
+  if (res) showToast(`${res.emoji} ${res.name} has joined Rightsborough.`);
+  updateHUD();
+}
+
+// ── HUD ───────────────────────────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('hud-count').textContent = STATE.unlockedCount;
+  const dispEl = document.getElementById('hud-displaced');
+  if (STATE.displaced.length > 0) {
+    dispEl.style.display = 'block';
+    document.getElementById('hud-displaced-count').textContent = STATE.displaced.length;
+  } else {
+    dispEl.style.display = 'none';
+  }
+}
+
+// ── Map ───────────────────────────────────────────────────────────────────────
+function renderMap() {
+  document.getElementById('map-unlocked').textContent = STATE.unlockedCount;
+  const grid = document.getElementById('resident-grid');
+  grid.innerHTML = '';
+  RESIDENTS.forEach((res, i) => {
+    const locked    = i >= STATE.unlockedCount;
+    const displaced = STATE.displaced.includes(res.id);
+    const trust     = STATE.trust[res.id] || 0;
+
+    const card = document.createElement('div');
+    card.className = 'resident-card' + (locked ? ' locked' : '') + (displaced ? ' displaced' : '');
+
+    if (displaced) {
+      const badge = document.createElement('div');
+      badge.className = 'displaced-badge';
+      badge.textContent = 'withdrawn';
+      card.appendChild(badge);
+    }
+
+    const dots = [1,2,3].map(i =>
+      `<div class="rc-trust-dot ${!locked && trust >= i ? 't'+i : ''}"></div>`
+    ).join('');
+
+    card.innerHTML += `
+      <div class="rc-emoji">${res.emoji}</div>
+      <div class="rc-name">${res.name}</div>
+      <div class="rc-article">${res.article}</div>
+      <div class="rc-trust">${dots}</div>
+    `;
+    if (!locked) card.title = res.right;
+    grid.appendChild(card);
+  });
+}
+
+// ── Between scenes — breaks linearity, gives player agency ──────────────────
+function showBetweenScenes() {
+  const next = SCENARIOS[STATE.scenarioIndex + 1];
+  if (!next) {
+    showToast("More stories coming soon — check back.");
+    return;
   }
 
-  // Disable all buttons
-  document.querySelectorAll('.choice-btn').forEach(b => b.onclick = null);
-  document.getElementById('next-btn').style.display = 'block';
+  const nextRes = RESIDENTS.find(r => r.id === next.residentId);
+  const unlocked = RESIDENTS.slice(0, STATE.unlockedCount);
+
+  // Pick 1-2 other known residents as alternate "visit" options
+  // (they'll just get a brief intro, not a scenario — coming in later build)
+  const others = unlocked
+    .filter(r => r.id !== next.residentId && r.id !== SCENARIOS[STATE.scenarioIndex]?.residentId)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 2);
+
+  document.getElementById('dialogue-speaker').textContent = 'Rita';
+  document.getElementById('dialogue-text').textContent =
+    "Rita pauses. The community is getting to know her — but there's still so much she doesn't know. Who does she visit next?";
+
+  const choicesEl = document.getElementById('vn-choices');
+  choicesEl.innerHTML = '';
+  document.getElementById('vn-continue').style.display = 'none';
+
+  // Option: go to next scenario
+  const btn1 = document.createElement('button');
+  btn1.className = 'choice fade-in';
+  btn1.innerHTML = `${nextRes.emoji} Visit <strong>${nextRes.name}</strong> — something is happening on their end.`;
+  btn1.onclick = () => {
+    STATE.scenarioIndex++;
+    choicesEl.innerHTML = '';
+    playScenario(STATE.scenarioIndex);
+  };
+  choicesEl.appendChild(btn1);
+
+  // Option: check community map
+  const btn2 = document.createElement('button');
+  btn2.className = 'choice fade-in';
+  btn2.innerHTML = `🗺️ Check in on <strong>Rightsborough</strong> — see how the community is doing.`;
+  btn2.onclick = () => showMap();
+  choicesEl.appendChild(btn2);
+
+  // Option: revisit a known resident (soft — for now shows a brief reflection)
+  if (others.length > 0) {
+    const other = others[0];
+    const trust = STATE.trust[other.id] || 0;
+    const btn3 = document.createElement('button');
+    btn3.className = 'choice fade-in';
+    btn3.innerHTML = `${other.emoji} Check in with <strong>${other.name}</strong>`;
+    btn3.onclick = () => {
+      choicesEl.innerHTML = '';
+      showRevisit(other, trust);
+    };
+    choicesEl.appendChild(btn3);
+  }
 }
 
-function nextScenario() {
-  state.scenarioIndex++;
-  loadScenario();
+// Brief revisit — builds trust passively, breaks linearity
+function showRevisit(res, currentTrust) {
+  const lines = [
+    `Rita stops by to check in. ${res.name} seems glad she remembered.`,
+    `They don't talk about rights today. Just life. Rita listens.`,
+    `"You came back," ${res.name} says. That matters more than Rita expected.`,
+  ];
+
+  let step = 0;
+  const ritaEl = document.getElementById('rita-portrait');
+  const resEl  = document.getElementById('resident-portrait');
+
+  document.getElementById('resident-emoji').textContent = res.emoji;
+  document.getElementById('resident-name-tag').textContent = res.name;
+  resEl.querySelector('.portrait-art').style.background =
+    `linear-gradient(160deg, ${res.color}cc 0%, ${res.color}88 100%)`;
+  ritaEl.className = 'portrait';
+  resEl.className = 'portrait speaking';
+
+  document.getElementById('vn-choices').innerHTML = '';
+  document.getElementById('vn-continue').style.display = 'block';
+
+  const showLine = () => {
+    if (step < lines.length) {
+      document.getElementById('dialogue-speaker').textContent = step === 0 ? '' : (step === 2 ? res.name : '');
+      document.getElementById('dialogue-text').textContent = lines[step];
+      document.getElementById('vn-continue').onclick = () => { step++; showLine(); };
+    } else {
+      // Passive trust gain for showing up
+      gainTrust(res.id, 1);
+      document.getElementById('dialogue-speaker').textContent = '';
+      document.getElementById('dialogue-text').textContent =
+        `Trust with ${res.name} has grown. Showing up matters.`;
+      document.getElementById('vn-continue').style.display = 'none';
+      setTimeout(() => showBetweenScenes(), 1600);
+    }
+  };
+
+  showLine();
 }
 
-// Init
-renderCommunity();
+// ── Toast ─────────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+// Init HUD
+updateHUD();
 </script>
 </body>
 </html>
