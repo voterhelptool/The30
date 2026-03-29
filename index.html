@@ -22,6 +22,10 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body {
+  height: 100%;
+}
+
 body {
   font-family: 'Source Serif 4', Georgia, serif;
   background: var(--ink);
@@ -36,7 +40,7 @@ body {
 #game {
   width: 100%;
   max-width: 860px;
-  min-height: 560px;
+  height: 580px;
   background: var(--paper);
   border-radius: 4px;
   box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,168,83,0.3);
@@ -333,7 +337,6 @@ body {
 /* ── Map screen ── */
 #map-screen {
   background: #2a2018;
-  display: flex;
   flex-direction: column;
   flex: 1;
   overflow: hidden;
@@ -365,6 +368,7 @@ body {
 
 #town-canvas-wrap {
   flex: 1;
+  min-height: 380px;
   overflow: hidden;
   position: relative;
 }
@@ -372,6 +376,8 @@ body {
 #town-svg {
   width: 100%;
   height: 100%;
+  min-height: 380px;
+  display: block;
 }
 
 /* Resident tooltip */
