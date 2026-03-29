@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The 30</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; background: #0a0a0a; color: #f0f0f0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+  h1 { font-size: 3rem; letter-spacing: 0.2em; margin-bottom: 8px; }
+  .subtitle { color: #888; margin-bottom: 40px; font-style: italic; }
+  #community { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; max-width: 800px; margin-bottom: 40px; }
+  .resident { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 20px; width: 140px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .resident:hover { border-color: #f0c040; transform: translateY(-2px); }
+  .resident .avatar { font-size: 2.5rem; margin-bottom: 8px; }
+  .resident .name { font-size: 1rem; font-weight: bold; margin-bottom: 4px; }
+  .resident .article { font-size: 0.7rem; color: #888; }
+  #scenario-box { background: #1a1a1a; border: 1px solid #444; border-radius: 12px; padding: 24px; max-width: 600px; width: 100%; margin-bottom: 24px; display: none; }
+  #scenario-text { font-size: 1rem; line-height: 1.6; margin-bottom: 20px; color: #ddd; }
+  #choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn { background: #222; border: 1px solid #444; color: #f0f0f0; padding: 12px 16px; border-radius: 8px; cursor: pointer; text-align: left; font-size: 0.9rem; transition: all 0.15s; }
+  .choice-btn:hover { border-color: #f0c040; background: #2a2a2a; }
+  .choice-btn.correct { border-color: #4caf50; background: #1a2e1a; }
+  .choice-btn.wrong { border-color: #e53935; background: #2e1a1a; }
+  #feedback { margin-top: 16px; padding: 12px; border-radius: 8px; display: none; line-height: 1.5; }
+  #feedback.correct { background: #1a2e1a; border: 1px solid #4caf50; color: #81c784; }
+  #feedback.wrong { background: #2e1a1a; border: 1px solid #e53935; color: #ef9a9a; }
+  #next-btn { margin-top: 16px; background: #f0c040; color: #0a0a0a; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: bold; display: none; }
+  #score { color: #888; font-size: 0.9rem; margin-bottom: 16px; }
+  #start-btn { background: #f0c040; color: #0a0a0a; border: none; padding: 14px 32px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; }
+  .locked { opacity: 0.3; filter: grayscale(1); cursor: default; }
+  .locked:hover { transform: none; border-color: #333; }
+</style>
+</head>
+<body>
+
+<h1>THE 30</h1>
+<p class="subtitle">Every person. Every right. Every time.</p>
+
+<div id="score">Community: <span id="resident-count">1</span> / 30 residents · Score: <span id="points">0</span></div>
+
+<div id="community"></div>
+
+<div id="scenario-box">
+  <div id="scenario-text"></div>
+  <div id="choices"></div>
+  <div id="feedback"></div>
+  <button id="next-btn" onclick="nextScenario()">Next Scenario →</button>
+</div>
+
+<button id="start-btn" onclick="startGame()">Begin →</button>
+
+<script>
+// ── i18n foundation — all text lives here ─────────────────────────────────
+const LANG = {
+  en: {
+    title: "THE 30",
+    subtitle: "Every person. Every right. Every time.",
+    begin: "Begin →",
+    next: "Next Scenario →",
+    communityLabel: "Community",
+    of: "/",
+    residents: "residents",
+    score: "Score",
+    correct: "✓ Correct.",
+    wrong: "✗ Not quite.",
+    newResident: "has joined your community.",
+  }
+};
+
+const currentLang = 'en';
+const t = key => LANG[currentLang][key] || key;
+
+// ── Residents — all 30 ────────────────────────────────────────────────────
+const RESIDENTS = [
+  { id:1,  name:'Eden',    emoji:'🌱', right:'Equal dignity & freedom',             article:'Article 1'  },
+  { id:2,  name:'Amara',   emoji:'🤝', right:'No discrimination',                   article:'Article 2'  },
+  { id:3,  name:'Vida',    emoji:'💛', right:'Life, liberty & security',             article:'Article 3'  },
+  { id:4,  name:'Solomon', emoji:'⛓️', right:'Freedom from slavery',                article:'Article 4'  },
+  { id:5,  name:'River',   emoji:'🌊', right:'Freedom from torture',                article:'Article 5'  },
+  { id:6,  name:'Justice', emoji:'⚖️', right:'Recognition before the law',          article:'Article 6'  },
+  { id:7,  name:'Equan',   emoji:'🛡️', right:'Equal protection under law',          article:'Article 7'  },
+  { id:8,  name:'Remy',    emoji:'🔑', right:'Right to remedy',                     article:'Article 8'  },
+  { id:9,  name:'Freeman', emoji:'🚪', right:'No arbitrary arrest',                 article:'Article 9'  },
+  { id:10, name:'Julian',  emoji:'🏛️', right:'Right to a fair trial',               article:'Article 10' },
+  { id:11, name:'Grace',   emoji:'🕊️', right:'Innocent until proven guilty',        article:'Article 11' },
+  { id:12, name:'Sage',    emoji:'🔒', right:'Right to privacy',                    article:'Article 12' },
+  { id:13, name:'Miles',   emoji:'🗺️', right:'Freedom of movement',                 article:'Article 13' },
+  { id:14, name:'Haven',   emoji:'🏠', right:'Right to asylum',                     article:'Article 14' },
+  { id:15, name:'Nia',     emoji:'🌍', right:'Right to nationality',                article:'Article 15' },
+  { id:16, name:'Cora',    emoji:'💍', right:'Right to marry & family',             article:'Article 16' },
+  { id:17, name:'Petra',   emoji:'🏡', right:'Right to own property',               article:'Article 17' },
+  { id:18, name:'Theo',    emoji:'💭', right:'Freedom of thought & conscience',     article:'Article 18' },
+  { id:19, name:'Joy',     emoji:'📢', right:'Freedom of expression',               article:'Article 19' },
+  { id:20, name:'Unity',   emoji:'✊', right:'Freedom of assembly',                 article:'Article 20' },
+  { id:21, name:'Vera',    emoji:'🗳️', right:'Right to participate in government',  article:'Article 21' },
+  { id:22, name:'Noor',    emoji:'🌟', right:'Right to social security',            article:'Article 22' },
+  { id:23, name:'Earnest', emoji:'🔨', right:'Right to work',                       article:'Article 23' },
+  { id:24, name:'Lax',     emoji:'🌙', right:'Right to rest & leisure',             article:'Article 24' },
+  { id:25, name:'Flora',   emoji:'🌾', right:'Adequate standard of living',         article:'Article 25' },
+  { id:26, name:'Wren',    emoji:'📚', right:'Right to education',                  article:'Article 26' },
+  { id:27, name:'Lila',    emoji:'🎨', right:'Right to cultural life & arts',       article:'Article 27' },
+  { id:28, name:'Atlas',   emoji:'🌐', right:'Right to a supportive social order',  article:'Article 28' },
+  { id:29, name:'Caden',   emoji:'🤲', right:'Duties to community',                 article:'Article 29' },
+  { id:30, name:'Anchor',  emoji:'⚓', right:'Rights can never be taken away',      article:'Article 30' },
+];
+
+// ── Scenarios ─────────────────────────────────────────────────────────────
+// Each scenario: text, correct resident id, explanation, wrong choices (2 other ids)
+const SCENARIOS = [
+  {
+    text: "A journalist is arrested after publishing a story critical of the local government. No charges are filed. She sits in a cell for weeks with no hearing scheduled.",
+    correct: 9,
+    explanation: "Freeman protects everyone from arbitrary arrest and detention. You can't be held without cause and without charge. Joy (Article 19) also applies — but the immediate violation here is the detention itself.",
+    wrongs: [19, 10]
+  },
+  {
+    text: "A school tells a student she cannot wear her hijab to class, saying it disrupts the learning environment.",
+    correct: 18,
+    explanation: "Theo stands for freedom of thought, conscience, and religion — including the right to practice and express your faith. This is a direct violation.",
+    wrongs: [2, 26]
+  },
+  {
+    text: "A family fleeing violence in their home country is turned away at the border and sent back.",
+    correct: 14,
+    explanation: "Haven protects the right to seek asylum in other countries when facing persecution. Turning someone away into danger violates this right.",
+    wrongs: [13, 15]
+  },
+  {
+    text: "An employer pays women 30% less than men for identical work and refuses to promote them.",
+    correct: 23,
+    explanation: "Earnest protects the right to work under just and favorable conditions — including equal pay. This is also tied to Amara (Article 2, no discrimination), but the labor rights violation is primary here.",
+    wrongs: [2, 7]
+  },
+  {
+    text: "The government shuts down all internet access before a planned peaceful protest.",
+    correct: 19,
+    explanation: "Joy stands for freedom of expression — which includes access to information and communication. Blocking the internet to suppress organizing violates this right directly.",
+    wrongs: [20, 12]
+  },
+  {
+    text: "A person is convicted of a crime in a secret trial with no lawyer and no right to appeal.",
+    correct: 10,
+    explanation: "Julian protects the right to a fair and public hearing by an independent tribunal. Secret trials with no legal representation are a fundamental violation.",
+    wrongs: [11, 6]
+  },
+  {
+    text: "A landlord evicts an elderly tenant specifically because of her age, with no legal process.",
+    correct: 2,
+    explanation: "Amara protects everyone from discrimination — including on the basis of age. Combined with the lack of legal process, this hits multiple rights, but discrimination is the root.",
+    wrongs: [17, 9]
+  },
+  {
+    text: "Children in a rural district have no school within 50 miles and the government provides no alternative.",
+    correct: 26,
+    explanation: "Wren protects the right to education. Governments have an obligation to make elementary education available and accessible to everyone.",
+    wrongs: [25, 29]
+  },
+  {
+    text: "A worker is forced to work 16-hour days, 7 days a week, with no days off and no overtime pay.",
+    correct: 24,
+    explanation: "Lax protects the right to rest, leisure, reasonable working hours, and periodic paid holidays. This is a clear violation of Article 24.",
+    wrongs: [23, 25]
+  },
+  {
+    text: "Police raid a private home without a warrant and read through personal messages and diaries.",
+    correct: 12,
+    explanation: "Sage protects the right to privacy — in your home, your correspondence, and your personal life. Unauthorized searches violate this directly.",
+    wrongs: [9, 17]
+  },
+];
+
+// ── Game state ────────────────────────────────────────────────────────────
+let state = {
+  unlockedCount: 1,
+  points: 0,
+  scenarioIndex: 0,
+  shuffled: [],
+  answered: false,
+};
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function startGame() {
+  document.getElementById('start-btn').style.display = 'none';
+  document.getElementById('scenario-box').style.display = 'block';
+  state.shuffled = shuffle(SCENARIOS);
+  renderCommunity();
+  loadScenario();
+}
+
+function renderCommunity() {
+  const container = document.getElementById('community');
+  container.innerHTML = '';
+  document.getElementById('resident-count').textContent = state.unlockedCount;
+  document.getElementById('points').textContent = state.points;
+
+  RESIDENTS.forEach((r, i) => {
+    const locked = i >= state.unlockedCount;
+    const div = document.createElement('div');
+    div.className = 'resident' + (locked ? ' locked' : '');
+    div.innerHTML = `<div class="avatar">${r.emoji}</div><div class="name">${r.name}</div><div class="article">${r.article}</div>`;
+    if (!locked) div.title = r.right;
+    container.appendChild(div);
+  });
+}
+
+function loadScenario() {
+  if (state.scenarioIndex >= state.shuffled.length) {
+    state.scenarioIndex = 0;
+    state.shuffled = shuffle(SCENARIOS);
+  }
+
+  const scenario = state.shuffled[state.scenarioIndex];
+  const correctResident = RESIDENTS.find(r => r.id === scenario.correct);
+  const wrongResidents = scenario.wrongs
+    .map(id => RESIDENTS.find(r => r.id === id))
+    .filter(Boolean);
+
+  const options = shuffle([correctResident, ...wrongResidents]);
+
+  document.getElementById('scenario-text').textContent = scenario.text;
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('next-btn').style.display = 'none';
+  state.answered = false;
+
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  options.forEach(resident => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `${resident.emoji} <strong>${resident.name}</strong> — ${resident.right} (${resident.article})`;
+    btn.onclick = () => answer(resident.id === scenario.correct, btn, scenario);
+    choicesEl.appendChild(btn);
+  });
+}
+
+function answer(isCorrect, btn, scenario) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const feedback = document.getElementById('feedback');
+  feedback.style.display = 'block';
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    state.points += 10;
+    feedback.className = 'correct';
+
+    // Unlock next resident if not at max
+    const newResident = RESIDENTS[state.unlockedCount];
+    let newMsg = '';
+    if (state.unlockedCount < 30) {
+      state.unlockedCount++;
+      newMsg = `<br><br>🎉 <strong>${newResident?.name}</strong> has joined your community.`;
+    }
+    feedback.innerHTML = `✓ Correct. ${scenario.explanation}${newMsg}`;
+    renderCommunity();
+  } else {
+    btn.classList.add('wrong');
+    feedback.className = 'wrong';
+    feedback.innerHTML = `✗ Not quite. ${scenario.explanation}`;
+    // Show correct answer
+    document.querySelectorAll('.choice-btn').forEach(b => {
+      const correctResident = RESIDENTS.find(r => r.id === scenario.correct);
+      if (b.innerHTML.includes(correctResident.name)) b.classList.add('correct');
+    });
+  }
+
+  // Disable all buttons
+  document.querySelectorAll('.choice-btn').forEach(b => b.onclick = null);
+  document.getElementById('next-btn').style.display = 'block';
+}
+
+function nextScenario() {
+  state.scenarioIndex++;
+  loadScenario();
+}
+
+// Init
+renderCommunity();
+</script>
+</body>
+</html>
