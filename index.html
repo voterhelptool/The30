@@ -523,6 +523,52 @@ h1 span { color: var(--gold); }
     Empty your hand first. Uphold the 30.
   </p>
   <button class="btn" onclick="startGame()">DEAL THE CARDS</button>
+  <button class="btn-sm" onclick="showHowTo()" style="margin-top:12px">HOW TO PLAY</button>
+</div>
+
+<!-- HOW TO PLAY SCREEN -->
+<div id="howto-screen" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;max-width:640px;margin:0 auto;gap:0">
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:0.25em;color:var(--gold);margin-bottom:12px">HOW TO PLAY</div>
+  <h2 style="font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:0.08em;color:var(--text);margin-bottom:24px;text-align:center">UPHOLD THE 30</h2>
+
+  <div style="display:flex;flex-direction:column;gap:16px;width:100%;margin-bottom:32px">
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px">🎯 YOUR GOAL</div>
+      <div style="font-size:1rem;line-height:1.7;color:var(--text)">Empty your hand before the Bureaucrat runs out of violations. Every card you play is one right upheld.</div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px">🃏 ON YOUR TURN</div>
+      <div style="font-size:1rem;line-height:1.7;color:var(--text)">The Bureaucrat plays a <span style="color:var(--red)">Violation</span> — a situation where a human right is being threatened. Play the matching <span style="color:var(--blue)">Rights card</span> from your hand to counter it.</div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--red);margin-bottom:6px">⚠️ WRONG CARD = PENALTY</div>
+      <div style="font-size:1rem;line-height:1.7;color:var(--text)">Play the wrong rights card and you draw a penalty card — your hand gets bigger and harder to empty. Think before you play.</div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px">📥 DON'T HAVE THE CARD?</div>
+      <div style="font-size:1rem;line-height:1.7;color:var(--text)">Hit <strong>DRAW</strong> to pull from the deck. Keep drawing until you find the right card — but every draw adds to your hand. If your hand hits 8 cards, the violation wins and you take 2 more as penalty.</div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--purple);margin-bottom:6px">✨ SPECIAL CARDS</div>
+      <div style="font-size:1rem;line-height:1.7;color:var(--text)">
+        <span style="color:var(--green)">🛡 SHIELD</span> — Block any violation, no match needed.<br>
+        <span style="color:var(--red)">⚡ ESCALATE</span> — Redirect the violation, Bureaucrat draws 2 more.<br>
+        <span style="color:var(--purple)">✌️ SOLIDARITY</span> — Play 2 rights at once, clear 2 cards.<br>
+        <span style="color:var(--gold)">🚫 NOPE</span> — Cancel the Bureaucrat's next special move.
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+    <button class="btn" onclick="startGame()">DEAL THE CARDS</button>
+    <button class="btn-sm" onclick="showTitle()">← BACK</button>
+  </div>
 </div>
 
 <!-- GAME SCREEN -->
@@ -531,7 +577,9 @@ h1 span { color: var(--gold); }
   <!-- HUD -->
   <div id="hud">
     <div class="hud-item">Hand: <strong id="hud-hand">5</strong></div>
+    <div class="hud-item">✓ <strong id="hud-score" style="color:var(--green)">0</strong> correct</div>
     <div id="hud-title">UPHOLD</div>
+    <div class="hud-item">✗ <strong id="hud-wrong" style="color:var(--red)">0</strong> wrong</div>
     <div class="hud-item">Deck: <strong id="hud-deck">—</strong></div>
   </div>
 
@@ -687,7 +735,9 @@ let STATE = {
   oppHandCount: 5,
   waitingForSecondSolidarity: false,
   firstSolidarity: null,
-  blocked: false, // opponent's next special is NOPEd
+  blocked: false,
+  score: 0,
+  wrongCount: 0, // opponent's next special is NOPEd
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -708,6 +758,13 @@ function showFeedback(msg, type) {
   el._timeout = setTimeout(() => { el.style.display = 'none'; }, 3200);
 }
 
+function updateScore() {
+  const s = document.getElementById('hud-score');
+  const w = document.getElementById('hud-wrong');
+  if (s) s.textContent = STATE.score;
+  if (w) w.textContent = STATE.wrongCount;
+}
+
 function updateHUD() {
   document.getElementById('hud-hand').textContent = STATE.hand.length;
   document.getElementById('hud-deck').textContent = STATE.deck.length;
@@ -724,7 +781,7 @@ function renderOppHand() {
 
 // ── Build Decks ───────────────────────────────────────────────────────────────
 function buildDecks() {
-  // Player deck: all 30 rights + 10 specials
+  // Player deck: all 30 rights + 10 specials, shuffled
   const rightCards = RIGHTS.map(r => ({ ...r, cardType: 'right' }));
   const specialCards = SPECIALS.map(s => ({ ...s, cardType: 'special' }));
   STATE.deck = shuffle([...rightCards, ...specialCards]);
@@ -736,6 +793,31 @@ function buildDecks() {
   STATE.oppHand = STATE.violations.splice(0, 5);
 }
 
+// Guarantee the correct rights card for the active violation is somewhere
+// in the top N cards of the deck (called after oppPlayViolation sets activeViolation)
+function guaranteeAnswer() {
+  const v = STATE.activeViolation;
+  if (!v) return;
+
+  // Check if correct card is already in hand
+  const inHand = STATE.hand.some(c => c.cardType === 'right' && c.id === v.rightId);
+  if (inHand) return;
+
+  // Check if correct card is in top 6 of deck
+  const searchDepth = Math.min(6, STATE.deck.length);
+  for (let i = 0; i < searchDepth; i++) {
+    if (STATE.deck[i].cardType === 'right' && STATE.deck[i].id === v.rightId) return;
+  }
+
+  // Not found in top 6 — find it deeper in deck and bubble it up to position 3
+  const idx = STATE.deck.findIndex(c => c.cardType === 'right' && c.id === v.rightId);
+  if (idx > -1) {
+    const [card] = STATE.deck.splice(idx, 1);
+    // Insert at position 3 so it's not the very next draw but reachable soon
+    STATE.deck.splice(Math.min(3, STATE.deck.length), 0, card);
+  }
+}
+
 // ── Start Game ────────────────────────────────────────────────────────────────
 function startGame() {
   buildDecks();
@@ -744,6 +826,8 @@ function startGame() {
   STATE.waitingForSecondSolidarity = false;
   STATE.firstSolidarity = null;
   STATE.blocked = false;
+  STATE.score = 0;
+  STATE.wrongCount = 0;
 
   // Deal 5 cards
   for (let i = 0; i < 5; i++) dealToPlayer();
@@ -755,6 +839,11 @@ function startGame() {
   renderOppHand();
   updateHUD();
   oppPlayViolation();
+}
+
+function showHowTo() {
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('howto-screen').style.display = 'flex';
 }
 
 function showTitle() {
@@ -824,6 +913,7 @@ function oppPlayViolation() {
 
   setQuip(pick(BUREAUCRAT.quips));
   updateHUD();
+  guaranteeAnswer(); // ensure correct card is reachable
   renderHand();
 }
 
@@ -857,6 +947,8 @@ function playRightCard(index, card) {
   if (card.id === v.rightId) {
     // Correct!
     removeFromHand(index);
+    STATE.score++;
+    updateScore();
     showFeedback(
       `✓ ${card.name} upheld. ${card.right} — ${card.article}. The violation is countered.`,
       'correct'
@@ -864,16 +956,37 @@ function playRightCard(index, card) {
     setQuip(pick(BUREAUCRAT.quips));
     afterViolationCleared();
   } else {
-    // Wrong — card stays, shake violation
-    showFeedback(
-      `✗ ${card.name} doesn't counter this. Think about what right is specifically threatened here.`,
-      'wrong'
-    );
+    // Wrong — penalty: draw 1 card
+    STATE.wrongCount++;
+    updateScore();
+    const penaltyDrawn = dealToPlayer();
+    const penaltyMsg = penaltyDrawn
+      ? `✗ ${card.name} doesn't counter this — penalty card drawn. Think about what right is specifically threatened here.`
+      : `✗ ${card.name} doesn't counter this. (Deck empty — no penalty card available.)`;
+    showFeedback(penaltyMsg, 'wrong');
     const vc = document.getElementById('violation-card');
     vc.classList.remove('shake');
     void vc.offsetWidth;
     vc.classList.add('shake');
-    setQuip("That's not the relevant policy, I'm afraid.");
+    setQuip(pick(["That's not the relevant policy, I'm afraid.", "Incorrect. Per subsection 12.", "Wrong. Try again. We have time. Unfortunately.", "That's not it. I've made a note."]));
+
+    // Check if hand is now at 8 — violation wins
+    if (STATE.hand.length >= 8) {
+      setTimeout(() => {
+        showFeedback(`Hand limit reached. The violation stands — 2 penalty cards added.`, 'wrong');
+        dealToPlayer();
+        dealToPlayer();
+        STATE.activeViolation = null;
+        document.getElementById('violation-card').style.display = 'none';
+        document.getElementById('empty-violation').style.display = 'block';
+        renderHand();
+        updateHUD();
+        setTimeout(() => oppPlayViolation(), 1400);
+      }, 1000);
+      return;
+    }
+    renderHand();
+    updateHUD();
   }
 }
 
@@ -896,10 +1009,10 @@ function playSpecialCard(index, card) {
     afterViolationCleared();
 
   } else if (card.type === 'solidarity') {
-    // First solidarity — ask for second card
+    // Solidarity: discard this card + pick one more to discard
+    // Solidarity card already removed from hand via removeFromHand above
     STATE.waitingForSecondSolidarity = true;
-    STATE.firstSolidarity = { card, originalIndex: index };
-    showFeedback("✌️ Solidarity! Now play a second rights card to clear 2 violations.", 'special');
+    showFeedback("✌️ Solidarity played! Now pick any card from your hand to discard with it. Useful for dumping dead cards.", 'special');
     setQuip("Two at once? That's unprecedented.");
     renderHand();
     return;
@@ -916,31 +1029,13 @@ function playSpecialCard(index, card) {
 
 function resolveSecondSolidarity(index, card) {
   STATE.waitingForSecondSolidarity = false;
-  const v = STATE.activeViolation;
-
-  if (card.cardType !== 'right') {
-    showFeedback("Solidarity needs a rights card as the second play.", 'wrong');
-    STATE.waitingForSecondSolidarity = false;
-    renderHand();
-    return;
-  }
-
-  if (card.id === v.rightId) {
-    removeFromHand(index);
-    // Draw an extra violation to clear (bonus)
-    const bonus = STATE.oppHand.shift();
-    if (bonus) {
-      showFeedback(`✌️ Solidarity! ${card.name} counters the violation — AND clears a bonus violation from the Bureaucrat's hand.`, 'special');
-    } else {
-      showFeedback(`✌️ Solidarity! ${card.name} counters the violation.`, 'special');
-    }
-    renderOppHand();
-    afterViolationCleared();
-  } else {
-    showFeedback(`✗ ${card.name} doesn't counter this violation. Solidarity failed — try a different card.`, 'wrong');
-    STATE.waitingForSecondSolidarity = false;
-    renderHand();
-  }
+  // Discard the chosen card alongside the Solidarity card (already removed)
+  const cardName = card.name || card.type;
+  removeFromHand(index);
+  showFeedback(`✌️ Solidarity! Discarded ${cardName} from your hand. The violation is still active — now play the matching rights card to counter it.`, 'special');
+  setQuip("Interesting strategy. Suspicious, but interesting.");
+  renderHand();
+  updateHUD();
 }
 
 function removeFromHand(index) {
@@ -1028,12 +1123,12 @@ function endGame(result) {
     document.getElementById('end-result').textContent = 'UPHELD';
     document.getElementById('end-result').className = 'win';
     document.getElementById('end-message').textContent =
-      `The Bureaucrat has run out of violations. You cleared your hand. Every right you played today belongs to everyone — including the people who tried to take them away. "${BUREAUCRAT.winQuip}"`;
+      `The Bureaucrat has run out of violations. You cleared your hand. ${STATE.score} rights upheld, ${STATE.wrongCount} wrong. Every right you played today belongs to everyone — including the people who tried to take them away. "${BUREAUCRAT.winQuip}"`;
   } else {
     document.getElementById('end-result').textContent = 'OVERRULED';
     document.getElementById('end-result').className = 'lose';
     document.getElementById('end-message').textContent =
-      `The violations piled up. But these rights don't expire. Knowing them is the first step to defending them. Play again. "${BUREAUCRAT.loseQuip}"`;
+      `The violations piled up. ${STATE.score} rights upheld, ${STATE.wrongCount} wrong. These rights don't expire — neither do you. Play again. "${BUREAUCRAT.loseQuip}"`;
   }
 }
 
