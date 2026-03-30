@@ -535,7 +535,7 @@ h1 span { color: var(--gold); }
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px">🎯 YOUR GOAL</div>
-      <div style="font-size:1rem;line-height:1.7;color:var(--text)">Empty your hand before the Bureaucrat runs out of violations. Every card you play is one right upheld.</div>
+      <div style="font-size:1rem;line-height:1.7;color:var(--text)">Counter violations by playing the matching rights card. When all violations are played, if you have more correct answers than wrong ones — you win. Every right answer is one right upheld.</div>
     </div>
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px">
@@ -550,7 +550,7 @@ h1 span { color: var(--gold); }
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px">📥 DON'T HAVE THE CARD?</div>
-      <div style="font-size:1rem;line-height:1.7;color:var(--text)">Hit <strong>DRAW</strong> to pull from the deck. Keep drawing until you find the right card — but every draw adds to your hand. If your hand hits 8 cards, the violation wins and you take 2 more as penalty.</div>
+      <div style="font-size:1rem;line-height:1.7;color:var(--text)">Hit <strong>DRAW &amp; SKIP</strong> to pull a new card. Each draw costs you one point — it counts as a wrong. Keep drawing until you find the right card. You'll always get there eventually.</div>
     </div>
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 20px">
@@ -867,36 +867,45 @@ function drawCard() {
     showFeedback("Wait for the Bureaucrat to play a violation first.", 'info');
     return;
   }
-  if (STATE.hand.length >= 8) {
-    showFeedback("Your hand is full. Play a card first.", 'info');
-    return;
-  }
 
-  // Draw a card — cost is hand grows
+  // Each draw costs 1 wrong point — you can always draw, but it hurts your score
+  STATE.wrongCount++;
+  updateScore();
+
   const drew = dealToPlayer();
   if (!drew) {
-    showFeedback("Deck is empty.", 'info');
+    // Deck empty — force the correct card into hand so game isn't stuck
+    const v = STATE.activeViolation;
+    const correctCard = RIGHTS.find(r => r.id === v.rightId);
+    if (correctCard) {
+      STATE.hand.push({ ...correctCard, cardType: 'right' });
+      showFeedback("Deck exhausted — the right card has been added to your hand.", 'info');
+    }
+    renderHand();
+    updateHUD();
     return;
   }
 
-  // Violation rotates — send it to the back of the opponent's hand
-  const skipped = STATE.activeViolation;
-  STATE.oppHand.push(skipped); // goes back in — deferred not defeated
-  STATE.activeViolation = null;
+  // Check if the card just drawn is the correct answer — let player know
+  const justDrawn = STATE.hand[STATE.hand.length - 1];
+  const v = STATE.activeViolation;
+  const isCorrect = justDrawn.cardType === 'right' && justDrawn.id === v.rightId;
 
   renderHand();
   updateHUD();
-  setQuip(pick([
-    "We'll circle back to that one.",
-    "Noted. Moving on.",
-    "That issue isn't going away.",
-    "Fine. But I have more where that came from.",
-    "Postponed, not resolved.",
-  ]));
-  showFeedback("Card drawn — violation deferred. The Bureaucrat will return to it.", 'info');
 
-  // Brief pause then next violation
-  setTimeout(() => oppPlayViolation(), 1000);
+  if (isCorrect) {
+    setQuip(pick(["Well. That's inconvenient.", "How did you get that.", "Irrelevant. Probably."]));
+    showFeedback(`Drew ${justDrawn.name} — that's the one. Play it to counter the violation.`, 'info');
+  } else {
+    setQuip(pick([
+      "Keep drawing. We have time.",
+      "Not that one.",
+      "Still not it.",
+      "The system is working as designed.",
+    ]));
+    showFeedback(`Drew ${justDrawn.name || justDrawn.type}. Each draw costs you a point — find the right card.`, 'info');
+  }
 }
 
 // ── Opponent plays ────────────────────────────────────────────────────────────
@@ -904,7 +913,8 @@ function oppPlayViolation() {
   if (STATE.oppHand.length === 0) {
     // Refill from remaining violations
     if (STATE.violations.length === 0) {
-      endGame('win');
+      // Score-based win: correct > wrong = win
+      endGame(STATE.score > STATE.wrongCount ? 'win' : 'lose');
       return;
     }
     const refill = Math.min(3, STATE.violations.length);
@@ -989,21 +999,6 @@ function playRightCard(index, card) {
     vc.classList.add('shake');
     setQuip(pick(["That's not the relevant policy, I'm afraid.", "Incorrect. Per subsection 12.", "Wrong. Try again. We have time. Unfortunately.", "That's not it. I've made a note."]));
 
-    // Check if hand is now at 8 — violation wins
-    if (STATE.hand.length >= 8) {
-      setTimeout(() => {
-        showFeedback(`Hand limit reached. The violation stands — 2 penalty cards added.`, 'wrong');
-        dealToPlayer();
-        dealToPlayer();
-        STATE.activeViolation = null;
-        document.getElementById('violation-card').style.display = 'none';
-        document.getElementById('empty-violation').style.display = 'block';
-        renderHand();
-        updateHUD();
-        setTimeout(() => oppPlayViolation(), 1400);
-      }, 1000);
-      return;
-    }
     renderHand();
     updateHUD();
   }
@@ -1069,9 +1064,9 @@ function afterViolationCleared() {
   renderHand();
   updateHUD();
 
-  // Check win
+  // Hand empty — check score to determine result
   if (STATE.hand.length === 0) {
-    setTimeout(() => endGame('win'), 600);
+    setTimeout(() => endGame(STATE.score > STATE.wrongCount ? 'win' : 'lose'), 600);
     return;
   }
 
@@ -1141,13 +1136,17 @@ function endGame(result) {
   if (result === 'win') {
     document.getElementById('end-result').textContent = 'UPHELD';
     document.getElementById('end-result').className = 'win';
+    const accuracy = STATE.score + STATE.wrongCount > 0
+      ? Math.round((STATE.score / (STATE.score + STATE.wrongCount)) * 100) : 100;
     document.getElementById('end-message').textContent =
-      `The Bureaucrat has run out of violations. You cleared your hand. ${STATE.score} rights upheld, ${STATE.wrongCount} wrong. Every right you played today belongs to everyone — including the people who tried to take them away. "${BUREAUCRAT.winQuip}"`;
+      `${STATE.score} rights upheld. ${STATE.wrongCount} wrong. ${accuracy}% accuracy. Every right you played today belongs to everyone — including the people who tried to take them away. "${BUREAUCRAT.winQuip}"`;
   } else {
     document.getElementById('end-result').textContent = 'OVERRULED';
     document.getElementById('end-result').className = 'lose';
+    const accuracy2 = STATE.score + STATE.wrongCount > 0
+      ? Math.round((STATE.score / (STATE.score + STATE.wrongCount)) * 100) : 0;
     document.getElementById('end-message').textContent =
-      `The violations piled up. ${STATE.score} rights upheld, ${STATE.wrongCount} wrong. These rights don't expire — neither do you. Play again. "${BUREAUCRAT.loseQuip}"`;
+      `${STATE.score} rights upheld. ${STATE.wrongCount} wrong. ${accuracy2}% accuracy. More wrong than right this time — but these rights don't expire. Neither do you. Play again. "${BUREAUCRAT.loseQuip}"`;
   }
 }
 
