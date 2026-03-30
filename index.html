@@ -318,6 +318,11 @@ h1 span { color: var(--gold); }
 }
 
 /* ── Cards ── */
+@keyframes answerPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(74,158,106,0); }
+  50%      { box-shadow: 0 0 12px 3px rgba(74,158,106,0.25); }
+}
+
 .card {
   width: var(--card-w);
   height: var(--card-h);
@@ -557,7 +562,7 @@ h1 span { color: var(--gold); }
       <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;color:var(--purple);margin-bottom:6px">✨ SPECIAL CARDS</div>
       <div style="font-size:1rem;line-height:1.7;color:var(--text)">
         <span style="color:var(--green)">🛡 SHIELD</span> — Block any violation, no match needed.<br>
-        <span style="color:var(--red)">⚡ ESCALATE</span> — Redirect the violation, Bureaucrat draws 2 more.<br>
+        <span style="color:var(--red)">⚡ ESCALATE</span> — Redirect the violation, remove 2 from the Bureaucrat's hand.<br>
         <span style="color:var(--purple)">✌️ SOLIDARITY</span> — Play 2 rights at once, clear 2 cards.<br>
         <span style="color:var(--gold)">🚫 NOPE</span> — Cancel the Bureaucrat's next special move.
       </div>
@@ -617,9 +622,9 @@ h1 span { color: var(--gold); }
 
   <!-- Draw pile -->
   <div id="actions">
-    <button id="draw-pile" onclick="drawCard()" aria-label="Draw a card from the deck">
+    <button id="draw-pile" onclick="drawCard()" aria-label="Draw a card from the deck (costs one point)">
       <div id="draw-pile-count">—</div>
-      <div>DRAW &amp; SKIP</div>
+      <div>DRAW</div>
     </button>
   </div>
 
@@ -674,9 +679,9 @@ const SPECIALS = [
   { type:'shield',    name:'SHIELD',     emoji:'🛡',  desc:'Block any violation. No match needed.',           color:'green'  },
   { type:'shield',    name:'SHIELD',     emoji:'🛡',  desc:'Block any violation. No match needed.',           color:'green'  },
   { type:'shield',    name:'SHIELD',     emoji:'🛡',  desc:'Block any violation. No match needed.',           color:'green'  },
-  { type:'escalate',  name:'ESCALATE',   emoji:'⚡',  desc:'Redirect the violation. Opponent draws 2.',       color:'red'    },
-  { type:'escalate',  name:'ESCALATE',   emoji:'⚡',  desc:'Redirect the violation. Opponent draws 2.',       color:'red'    },
-  { type:'escalate',  name:'ESCALATE',   emoji:'⚡',  desc:'Redirect the violation. Opponent draws 2.',       color:'red'    },
+  { type:'escalate',  name:'ESCALATE',   emoji:'⚡',  desc:'Redirect the violation. Remove 2 from the Bureaucrat\'s hand.', color:'red' },
+  { type:'escalate',  name:'ESCALATE',   emoji:'⚡',  desc:'Redirect the violation. Remove 2 from the Bureaucrat\'s hand.', color:'red' },
+  { type:'escalate',  name:'ESCALATE',   emoji:'⚡',  desc:'Redirect the violation. Remove 2 from the Bureaucrat\'s hand.', color:'red' },
   { type:'solidarity',name:'SOLIDARITY', emoji:'✌️', desc:'Play 2 rights at once. Clear 2 cards.',           color:'purple' },
   { type:'solidarity',name:'SOLIDARITY', emoji:'✌️', desc:'Play 2 rights at once. Clear 2 cards.',           color:'purple' },
   { type:'nope',      name:'NOPE',       emoji:'🚫',  desc:"Cancel the opponent's next special card.",        color:'gold'   },
@@ -895,16 +900,17 @@ function drawCard() {
   updateHUD();
 
   if (isCorrect) {
-    setQuip(pick(["Well. That's inconvenient.", "How did you get that.", "Irrelevant. Probably."]));
-    showFeedback(`Drew ${justDrawn.name} — that's the one. Play it to counter the violation.`, 'info');
+    setQuip(pick(["Well. That's inconvenient.", "Hmm.", "Interesting.", "I see you found something."]));
+    showFeedback(`Something in your hand might be worth a closer look.`, 'info');
   } else {
     setQuip(pick([
-      "Keep drawing. We have time.",
-      "Not that one.",
-      "Still not it.",
+      "Keep looking.",
+      "Not quite.",
+      "The answer is out there.",
       "The system is working as designed.",
+      "Perhaps the next one.",
     ]));
-    showFeedback(`Drew ${justDrawn.name || justDrawn.type}. Each draw costs you a point — find the right card.`, 'info');
+    showFeedback(`Card drawn. Each draw costs you a point — study the violation and trust your instincts.`, 'info');
   }
 }
 
@@ -1014,12 +1020,12 @@ function playSpecialCard(index, card) {
     afterViolationCleared();
 
   } else if (card.type === 'escalate') {
-    showFeedback("⚡ Escalate played. Violation redirected — Bureaucrat draws 2 more violations.", 'special');
-    // Refill opp hand with 2 more violations
-    const extra = STATE.violations.splice(0, Math.min(2, STATE.violations.length));
-    STATE.oppHand.push(...extra);
+    // Escalate: redirect the violation back — discard 2 from opponent's hand
+    const removed = Math.min(2, STATE.oppHand.length);
+    STATE.oppHand.splice(0, removed); // remove from front of their hand
     renderOppHand();
-    setQuip("This is highly irregular. I'll be noting this in your file.");
+    setQuip(pick(["This is highly irregular.", "You can't do that.", "I'll be filing a counter-complaint.", "That's not in the manual."]));
+    showFeedback(`⚡ Escalate played. Violation redirected — ${removed} violation${removed !== 1 ? 's' : ''} removed from the Bureaucrat's hand.`, 'special');
     afterViolationCleared();
 
   } else if (card.type === 'solidarity') {
@@ -1101,10 +1107,11 @@ function renderHand() {
       `;
     }
 
-    // Highlight correct card subtly when violation is active
+    // Subtle pulse on correct card — visible but not a giveaway
     if (STATE.activeViolation && card.cardType === 'right' &&
         card.id === STATE.activeViolation.rightId) {
-      el.style.borderColor = 'rgba(74,158,106,0.5)';
+      el.style.borderColor = 'rgba(74,158,106,0.7)';
+      el.style.animation = 'answerPulse 2.4s ease-in-out infinite';
     }
 
     // Solidarity waiting state
